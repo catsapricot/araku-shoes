@@ -41,11 +41,6 @@ class DashboardHeader extends StatelessWidget {
             )
           ],
         ),
-
-        const Icon(
-          Icons.cloud_outlined,
-          color: Colors.teal,
-        )
       ],
     );
   }
