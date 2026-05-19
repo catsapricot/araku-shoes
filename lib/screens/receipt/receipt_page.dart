@@ -1,0 +1,477 @@
+import 'package:flutter/material.dart';
+
+class ReceiptPage extends StatelessWidget {
+
+  final String invoice;
+  final String layanan;
+  final int jumlah;
+  final int harga;
+  final String metode;
+  final int total;
+
+  const ReceiptPage({
+    super.key,
+    required this.invoice,
+    required this.layanan,
+    required this.jumlah,
+    required this.harga,
+    required this.metode,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      backgroundColor:
+          const Color(0xFFF6F7FB),
+
+      body: SafeArea(
+
+        child: SingleChildScrollView(
+
+          padding: const EdgeInsets.all(20),
+
+          child: Column(
+
+            children: [
+
+              const SizedBox(height: 10),
+
+
+
+              // =====================================
+              // HEADER
+              // =====================================
+
+              const Row(
+
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+
+                children: [
+
+                  Icon(Icons.storefront_outlined),
+
+                  Text(
+
+                    "Araku Shoes Care",
+
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+
+                  Icon(Icons.cloud_done_outlined),
+                ],
+              ),
+
+              const SizedBox(height: 40),
+
+
+
+              // =====================================
+              // ICON
+              // =====================================
+
+              Container(
+
+                width: 100,
+                height: 100,
+
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEDE9FE),
+                  shape: BoxShape.circle,
+                ),
+
+                child: const Icon(
+                  Icons.check,
+                  size: 55,
+                  color: Color(0xFF5B2DA3),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+
+
+              // =====================================
+              // TITLE
+              // =====================================
+
+              const Text(
+
+                "Pembayaran Berhasil",
+
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+
+
+              // =====================================
+              // CARD
+              // =====================================
+
+              Container(
+
+                width: double.infinity,
+
+                padding:
+                    const EdgeInsets.all(22),
+
+                decoration: BoxDecoration(
+
+                  color: Colors.white,
+
+                  borderRadius:
+                      BorderRadius.circular(
+                    28,
+                  ),
+                ),
+
+                child: Column(
+
+                  children: [
+
+                    const Text(
+                      "Nomor Transaksi",
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+
+                      invoice,
+
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    const Text(
+                      "10 Mei 2026 • 12:00 WIB",
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    const Divider(),
+
+                    const SizedBox(height: 20),
+
+
+
+                    // =====================================
+                    // ITEM
+                    // =====================================
+
+                    Row(
+
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+
+                      children: [
+
+                        Expanded(
+
+                          child: Column(
+
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+
+                            children: [
+
+                              Text(
+                                layanan,
+                                style:
+                                    const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight:
+                                      FontWeight.w600,
+                                ),
+                              ),
+
+                              const SizedBox(
+                                  height: 6),
+
+                              Text(
+                                "$jumlah Pasang",
+                                style:
+                                    const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Text(
+
+                          "Rp $total",
+
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(height: 28),
+
+
+
+                    // =====================================
+                    // PAYMENT
+                    // =====================================
+
+                    Row(
+
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+
+                      children: [
+
+                        const Text(
+                          "Metode Pembayaran",
+                        ),
+
+                        Text(
+
+                          metode,
+
+                          style: const TextStyle(
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+
+
+
+                    // =====================================
+                    // TOTAL BOX
+                    // =====================================
+
+                    Container(
+
+                      width: double.infinity,
+
+                      padding:
+                          const EdgeInsets.all(22),
+
+                      decoration: BoxDecoration(
+
+                        color:
+                            const Color(0xFFF7F4FA),
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          20,
+                        ),
+                      ),
+
+                      child: Column(
+
+                        children: [
+
+                          const Text(
+                            "Total Pembayaran",
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          Text(
+
+                            "Rp $total",
+
+                            style: const TextStyle(
+                              fontSize: 38,
+                              fontWeight:
+                                  FontWeight.bold,
+                              color:
+                                  Color(0xFF5B2DA3),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+
+
+                    // =====================================
+                    // SAVED
+                    // =====================================
+
+                    Container(
+
+                      width: double.infinity,
+
+                      padding:
+                          const EdgeInsets.all(14),
+
+                      decoration: BoxDecoration(
+
+                        color:
+                            const Color(0xFFEDE9FE),
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          14,
+                        ),
+                      ),
+
+                      child: const Row(
+
+                        mainAxisAlignment:
+                            MainAxisAlignment.center,
+
+                        children: [
+
+                          Icon(
+                            Icons.check_circle,
+                            size: 18,
+                            color:
+                                Color(0xFF5B2DA3),
+                          ),
+
+                          SizedBox(width: 8),
+
+                          Text(
+                            "Tersimpan ke Google Sheets",
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+
+
+              // =====================================
+              // BUTTON
+              // =====================================
+
+              SizedBox(
+
+                width: double.infinity,
+                height: 58,
+
+                child: OutlinedButton(
+
+                  onPressed: () {
+
+                    Navigator.popUntil(
+                      context,
+                      (route) => route.isFirst,
+                    );
+                  },
+
+                  style:
+                      OutlinedButton.styleFrom(
+
+                    side: const BorderSide(
+                      color: Color(0xFF5B2DA3),
+                    ),
+
+                    shape:
+                        RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        18,
+                      ),
+                    ),
+                  ),
+
+                  child: const Text(
+
+                    "Kembali ke Dashboard",
+
+                    style: TextStyle(
+                      color: Color(0xFF5B2DA3),
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+
+
+              SizedBox(
+
+                width: double.infinity,
+                height: 58,
+
+                child: ElevatedButton(
+
+                  onPressed: () {
+
+                    Navigator.pop(context);
+                  },
+
+                  style:
+                      ElevatedButton.styleFrom(
+
+                    backgroundColor:
+                        const Color(0xFF5B2DA3),
+
+                    shape:
+                        RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        18,
+                      ),
+                    ),
+                  ),
+
+                  child: const Text(
+
+                    "Transaksi Baru",
+
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight:
+                          FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
