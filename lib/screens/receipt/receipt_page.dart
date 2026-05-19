@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 class ReceiptPage extends StatelessWidget {
 
   final String invoice;
-  final String layanan;
-  final int jumlah;
-  final int harga;
+
+  final List cart;
+
   final String metode;
+
   final int total;
 
   const ReceiptPage({
+
     super.key,
+
     required this.invoice,
-    required this.layanan,
-    required this.jumlah,
-    required this.harga,
+
+    required this.cart,
+
     required this.metode,
+
     required this.total,
   });
 
@@ -73,7 +77,7 @@ class ReceiptPage extends StatelessWidget {
 
 
               // =====================================
-              // ICON
+              // SUCCESS ICON
               // =====================================
 
               Container(
@@ -82,13 +86,18 @@ class ReceiptPage extends StatelessWidget {
                 height: 100,
 
                 decoration: const BoxDecoration(
+
                   color: Color(0xFFEDE9FE),
+
                   shape: BoxShape.circle,
                 ),
 
                 child: const Icon(
+
                   Icons.check,
+
                   size: 55,
+
                   color: Color(0xFF5B2DA3),
                 ),
               ),
@@ -106,7 +115,9 @@ class ReceiptPage extends StatelessWidget {
                 "Pembayaran Berhasil",
 
                 style: TextStyle(
+
                   fontSize: 34,
+
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -116,7 +127,7 @@ class ReceiptPage extends StatelessWidget {
 
 
               // =====================================
-              // CARD
+              // RECEIPT CARD
               // =====================================
 
               Container(
@@ -151,7 +162,9 @@ class ReceiptPage extends StatelessWidget {
                       invoice,
 
                       style: const TextStyle(
+
                         fontSize: 30,
+
                         fontWeight:
                             FontWeight.bold,
                       ),
@@ -159,9 +172,12 @@ class ReceiptPage extends StatelessWidget {
 
                     const SizedBox(height: 8),
 
-                    const Text(
-                      "10 Mei 2026 • 12:00 WIB",
-                      style: TextStyle(
+                    Text(
+
+                      DateTime.now()
+                          .toString(),
+
+                      style: const TextStyle(
                         color: Colors.grey,
                       ),
                     ),
@@ -175,67 +191,96 @@ class ReceiptPage extends StatelessWidget {
 
 
                     // =====================================
-                    // ITEM
+                    // MULTI ITEM
                     // =====================================
 
-                    Row(
-
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                    Column(
 
                       children: [
 
-                        Expanded(
+                        ...cart.map((item) {
 
-                          child: Column(
+                          return Padding(
 
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                            padding:
+                                const EdgeInsets.only(
+                              bottom: 18,
+                            ),
 
-                            children: [
+                            child: Row(
 
-                              Text(
-                                layanan,
-                                style:
-                                    const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight:
-                                      FontWeight.w600,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .start,
+
+                              children: [
+
+                                Expanded(
+
+                                  child: Column(
+
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+
+                                    children: [
+
+                                      Text(
+
+                                        item["layanan"],
+
+                                        style:
+                                            const TextStyle(
+
+                                          fontSize: 16,
+
+                                          fontWeight:
+                                              FontWeight.w600,
+                                        ),
+                                      ),
+
+                                      const SizedBox(
+                                          height: 6),
+
+                                      Text(
+
+                                        "${item["qty"]}x",
+
+                                        style:
+                                            const TextStyle(
+                                          color:
+                                              Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
 
-                              const SizedBox(
-                                  height: 6),
+                                Text(
 
-                              Text(
-                                "$jumlah Pasang",
-                                style:
-                                    const TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                                  "Rp ${item["subtotal"]}",
 
-                        Text(
+                                  style:
+                                      const TextStyle(
 
-                          "Rp $total",
+                                    fontSize: 18,
 
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
-                        )
+                                    fontWeight:
+                                        FontWeight.bold,
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ],
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 10),
+
+                    const Divider(),
+
+                    const SizedBox(height: 24),
 
 
 
@@ -246,7 +291,8 @@ class ReceiptPage extends StatelessWidget {
                     Row(
 
                       mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                          MainAxisAlignment
+                              .spaceBetween,
 
                       children: [
 
@@ -307,9 +353,12 @@ class ReceiptPage extends StatelessWidget {
                             "Rp $total",
 
                             style: const TextStyle(
+
                               fontSize: 38,
+
                               fontWeight:
                                   FontWeight.bold,
+
                               color:
                                   Color(0xFF5B2DA3),
                             ),
@@ -352,8 +401,11 @@ class ReceiptPage extends StatelessWidget {
                         children: [
 
                           Icon(
+
                             Icons.check_circle,
+
                             size: 18,
+
                             color:
                                 Color(0xFF5B2DA3),
                           ),
@@ -375,12 +427,13 @@ class ReceiptPage extends StatelessWidget {
 
 
               // =====================================
-              // BUTTON
+              // BACK BUTTON
               // =====================================
 
               SizedBox(
 
                 width: double.infinity,
+
                 height: 58,
 
                 child: OutlinedButton(
@@ -388,7 +441,9 @@ class ReceiptPage extends StatelessWidget {
                   onPressed: () {
 
                     Navigator.popUntil(
+
                       context,
+
                       (route) => route.isFirst,
                     );
                   },
@@ -402,6 +457,7 @@ class ReceiptPage extends StatelessWidget {
 
                     shape:
                         RoundedRectangleBorder(
+
                       borderRadius:
                           BorderRadius.circular(
                         18,
@@ -414,7 +470,10 @@ class ReceiptPage extends StatelessWidget {
                     "Kembali ke Dashboard",
 
                     style: TextStyle(
-                      color: Color(0xFF5B2DA3),
+
+                      color:
+                          Color(0xFF5B2DA3),
+
                       fontWeight:
                           FontWeight.bold,
                     ),
@@ -426,9 +485,14 @@ class ReceiptPage extends StatelessWidget {
 
 
 
+              // =====================================
+              // NEW TRANSACTION
+              // =====================================
+
               SizedBox(
 
                 width: double.infinity,
+
                 height: 58,
 
                 child: ElevatedButton(
@@ -446,6 +510,7 @@ class ReceiptPage extends StatelessWidget {
 
                     shape:
                         RoundedRectangleBorder(
+
                       borderRadius:
                           BorderRadius.circular(
                         18,
@@ -458,9 +523,12 @@ class ReceiptPage extends StatelessWidget {
                     "Transaksi Baru",
 
                     style: TextStyle(
+
                       fontSize: 18,
+
                       fontWeight:
                           FontWeight.bold,
+
                       color: Colors.white,
                     ),
                   ),

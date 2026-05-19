@@ -2,104 +2,125 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../receipt/receipt_page.dart';
+import '../../services/api_service.dart';
 
 class InputOrderPage extends StatefulWidget {
   const InputOrderPage({super.key});
 
   @override
-  State<InputOrderPage> createState() =>
-      _InputOrderPageState();
+  State<InputOrderPage> createState() => _InputOrderPageState();
 }
 
-class _InputOrderPageState
-    extends State<InputOrderPage> {
-
-  final String apiUrl =
-      "https://script.google.com/macros/s/AKfycbzE5GT3hHsNkTP7PVlxng79VBCwRiTqi0UolVR3-lSdUR_nah-l_7ZvAR9aKv-N-lBt/exec";
-
-
-
+class _InputOrderPageState extends State<InputOrderPage> {
   // =====================================
-  // CONTROLLER
+  // CONSTANTS
   // =====================================
 
-  final namaController =
-      TextEditingController();
+  static const Color kPrimary = Color(0xFF5B2DA3);
+  static const Color kPrimaryLight = Color(0xFFF3E8FF);
+  static const Color kBackground = Color(0xFFF6F7FB);
+  static const Color kCardBg = Color(0xFFF7F4FA);
 
-  final nohpController =
-      TextEditingController();
+  // =====================================
+  // CONTROLLERS
+  // =====================================
 
-  final hargaController =
-      TextEditingController();
-
-  final catatanController =
-      TextEditingController();
-
-
+  final namaController = TextEditingController();
+  final nohpController = TextEditingController();
+  final catatanController = TextEditingController();
+  final qtyController = TextEditingController(text: "1");
 
   // =====================================
   // STATE
   // =====================================
 
-  int jumlah = 1;
-
-  String layanan =
-      "Cuci Sepatu Gelap";
-
+  List<Map<String, dynamic>> cart = [];
+  Map<String, dynamic> selectedLayanan = {
+    "nama": "Cuci Sepatu Gelap",
+    "harga": 35000,
+  };
   String metode = "Tunai";
-
   bool isLoading = false;
 
-
-
   // =====================================
-  // LAYANAN LIST
+  // PRICELIST
   // =====================================
 
-  final List<String> layananList = [
-
-    "Cuci Sepatu Gelap",
-
-    "Cuci Sepatu Terang",
-
-    "Cuci Sepatu Flat Shoes / Heels",
-
-    "Cuci Sepatu Boots",
-
-    "Cuci Sepatu Gelap Express",
-
-    "Cuci Sepatu Terang Express",
-
-    "Cuci + Lem",
-
-    "Cuci + Jahit",
-
-    "Cuci + Repaint",
-
-    "Unyellowing",
-
-    "Anti Jamur",
+  final List<Map<String, dynamic>> layananList = [
+    {"nama": "Cuci Sepatu Gelap", "harga": 35000},
+    {"nama": "Cuci Sepatu Terang", "harga": 40000},
+    {"nama": "Cuci Sepatu Flat Shoes / Heels", "harga": 35000},
+    {"nama": "Cuci Sepatu Boots", "harga": 50000},
+    {"nama": "Cuci Sepatu Gelap Express", "harga": 50000},
+    {"nama": "Cuci Sepatu Terang Express", "harga": 55000},
+    {"nama": "Cuci + Lem", "harga": 65000},
+    {"nama": "Cuci + Jahit", "harga": 85000},
+    {"nama": "Cuci + Repaint", "harga": 105000},
+    {"nama": "Unyellowing", "harga": 65000},
+    {"nama": "Anti Jamur", "harga": 65000},
   ];
 
-
-
   // =====================================
-  // TOTAL
+  // FORMAT RUPIAH
   // =====================================
 
-  int get total {
-
-    int harga =
-        int.tryParse(
-          hargaController.text,
-        ) ??
-        0;
-
-    return harga * jumlah;
+  String rupiah(int number) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(number);
   }
 
+  // =====================================
+  // CART LOGIC
+  // =====================================
 
+  void addToCart() {
+    int qty = int.tryParse(qtyController.text) ?? 1;
+    if (qty < 1) qty = 1;
+
+    final String nama = selectedLayanan["nama"];
+    final int harga = selectedLayanan["harga"];
+    final int existingIndex = cart.indexWhere((item) => item["layanan"] == nama);
+
+    setState(() {
+      if (existingIndex != -1) {
+        cart[existingIndex]["qty"] += qty;
+        cart[existingIndex]["subtotal"] =
+            cart[existingIndex]["qty"] * cart[existingIndex]["harga"];
+      } else {
+        cart.add({
+          "layanan": nama,
+          "qty": qty,
+          "harga": harga,
+          "subtotal": harga * qty,
+        });
+      }
+    });
+
+    qtyController.text = "1";
+  }
+
+  void updateQty(int index, int delta) {
+    setState(() {
+      final newQty = (cart[index]["qty"] as int) + delta;
+      if (newQty < 1) {
+        cart.removeAt(index);
+      } else {
+        cart[index]["qty"] = newQty;
+        cart[index]["subtotal"] = newQty * (cart[index]["harga"] as int);
+      }
+    });
+  }
+
+  void removeItem(int index) {
+    setState(() => cart.removeAt(index));
+  }
+
+  int get total => cart.fold(0, (sum, item) => sum + (item["subtotal"] as int));
 
   // =====================================
   // SUBMIT
@@ -108,17 +129,21 @@ class _InputOrderPageState
   Future<void> simpanData() async {
 
     if (
-      namaController.text.isEmpty ||
-      nohpController.text.isEmpty ||
-      hargaController.text.isEmpty
+        namaController.text.isEmpty ||
+
+        nohpController.text.isEmpty ||
+
+        cart.isEmpty
     ) {
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
         const SnackBar(
+
           content: Text(
-            "Lengkapi data terlebih dahulu",
+
+            "Lengkapi data dan tambahkan layanan terlebih dahulu",
           ),
         ),
       );
@@ -126,19 +151,35 @@ class _InputOrderPageState
       return;
     }
 
+
+
     setState(() {
+
       isLoading = true;
     });
 
+
+
     try {
 
-      final response = await http.post(
+      // =====================================
+      // GET DYNAMIC API URL
+      // =====================================
+
+      final apiUrl =
+          await ApiService.getApiUrl();
+
+
+
+      final response =
+          await http.post(
 
         Uri.parse(apiUrl),
 
         headers: {
+
           "Content-Type":
-              "application/json"
+              "application/json",
         },
 
         body: jsonEncode({
@@ -150,13 +191,13 @@ class _InputOrderPageState
               nohpController.text,
 
           "layanan":
-              layanan,
+              jsonEncode(cart),
 
           "jumlah":
-              jumlah,
+              cart.length,
 
           "harga":
-              hargaController.text,
+              total,
 
           "metode":
               metode,
@@ -166,139 +207,115 @@ class _InputOrderPageState
         }),
       );
 
-      Map<String, dynamic> result = {
-        "status": "success",
-        "id": DateTime.now().millisecondsSinceEpoch
-      };
 
-      if (result["status"] == "success") {
 
-        if (!mounted) return;
+      final result =
+          jsonDecode(response.body);
 
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
 
-          const SnackBar(
-            content: Text(
-              "Transaksi berhasil disimpan",
-            ),
+
+      final String invoiceId =
+          "TRX-${result["id"]}";
+
+
+
+      if (!mounted) return;
+
+
+
+      Navigator.pushReplacement(
+
+        context,
+
+        MaterialPageRoute(
+
+          builder: (context) =>
+
+              ReceiptPage(
+
+            invoice:
+                invoiceId,
+
+            cart:
+                cart,
+
+            metode:
+                metode,
+
+            total:
+                total,
           ),
-        );
-
-        Navigator.pushReplacement(
-
-          context,
-
-          MaterialPageRoute(
-
-            builder: (context) => ReceiptPage(
-
-              invoice:
-                  "TRX-${result["id"]}",
-
-              layanan:
-                  layanan,
-
-              jumlah:
-                  jumlah,
-
-              harga:
-                  int.parse(
-                    hargaController.text,
-                  ),
-
-              metode:
-                  metode,
-
-              total:
-                  total,
-            ),
-          ),
-        );
-      }
+        ),
+      );
 
     } catch (e) {
+
+      if (!mounted) return;
+
+
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
         SnackBar(
+
           content: Text(
-            e.toString(),
+
+            "Gagal menyimpan: ${e.toString()}",
           ),
         ),
       );
 
     } finally {
 
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+
+        setState(() {
+
+          isLoading = false;
+        });
+      }
     }
   }
 
+
+  // =====================================
+  // BUILD
+  // =====================================
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      backgroundColor:
-          const Color(0xFFF6F7FB),
-
+      backgroundColor: kBackground,
       appBar: AppBar(
-
         elevation: 0,
-
         backgroundColor: Colors.white,
-
         title: const Text(
           "Input Transaksi",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-
-        iconTheme:
-            const IconThemeData(
-          color: Colors.black,
-        ),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-
       body: SingleChildScrollView(
-
         padding: const EdgeInsets.all(16),
-
         child: Column(
-
           children: [
-
-            // =====================================
-            // INFO PELANGGAN
-            // =====================================
-
-            buildSection(
-
+            // ── INFO PELANGGAN ──────────────────────────
+            _buildSection(
               title: "Info Pelanggan",
-
               child: Column(
-
                 children: [
-
-                  buildInput(
+                  _buildInput(
                     label: "Nama Pelanggan",
                     hint: "Masukkan nama...",
-                    controller:
-                        namaController,
+                    controller: namaController,
                   ),
-
                   const SizedBox(height: 14),
-
-                  buildInput(
+                  _buildInput(
                     label: "Nomor HP Pelanggan",
                     hint: "+62 81234567890",
-                    controller:
-                        nohpController,
+                    controller: nohpController,
+                    inputType: TextInputType.phone,
                   ),
                 ],
               ),
@@ -306,177 +323,139 @@ class _InputOrderPageState
 
             const SizedBox(height: 16),
 
-
-
-            // =====================================
-            // DETAIL LAYANAN
-            // =====================================
-
-            buildSection(
-
-              title: "Detail Layanan",
-
+            // ── KATALOG LAYANAN ─────────────────────────
+            _buildSection(
+              title: "Pilih Layanan",
               child: Column(
-
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  const Text(
-                    "Jenis Layanan",
-                  ),
-
-                  const SizedBox(height: 12),
-
                   Wrap(
-
                     spacing: 8,
                     runSpacing: 8,
-
-                    children:
-
-                        layananList.map((item) {
-
-                      bool selected =
-                          layanan == item;
-
+                    children: layananList.map((item) {
+                      final bool selected = selectedLayanan["nama"] == item["nama"];
                       return GestureDetector(
-
-                        onTap: () {
-
-                          setState(() {
-                            layanan = item;
-                          });
-                        },
-
-                        child: Container(
-
-                          padding:
-                              const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-
+                        onTap: () => setState(() => selectedLayanan = item),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: 148,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
                           decoration: BoxDecoration(
-
-                            color: selected
-                                ? const Color(
-                                    0xFF5B2DA3)
-                                : Colors.white,
-
-                            borderRadius:
-                                BorderRadius.circular(
-                              20,
-                            ),
-
+                            color: selected ? kPrimary : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: selected
-                                  ? const Color(
-                                      0xFF5B2DA3)
-                                  : Colors.grey
-                                      .shade300,
+                              color: selected ? kPrimary : Colors.grey.shade300,
                             ),
+                            boxShadow: selected
+                                ? [
+                                    BoxShadow(
+                                      color: kPrimary.withOpacity(0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    )
+                                  ]
+                                : [],
                           ),
-
-                          child: Text(
-
-                            item,
-
-                            style: TextStyle(
-                              color: selected
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontSize: 12,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item["nama"],
+                                style: TextStyle(
+                                  color: selected ? Colors.white : Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                rupiah(item["harga"]),
+                                style: TextStyle(
+                                  color: selected
+                                      ? Colors.white70
+                                      : Colors.grey.shade600,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
                     }).toList(),
                   ),
 
-                  const SizedBox(height: 22),
-
-                  const Text(
-                    "Jumlah Sepatu",
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Container(
-
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 10,
-                    ),
-
-                    decoration: BoxDecoration(
-
-                      color: Colors.white,
-
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
-                    ),
-
-                    child: Row(
-
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-
-                      children: [
-
-                        IconButton(
-
-                          onPressed: () {
-
-                            if (jumlah > 1) {
-
-                              setState(() {
-                                jumlah--;
-                              });
-                            }
-                          },
-
-                          icon:
-                              const Icon(Icons.remove),
-                        ),
-
-                        Text(
-                          jumlah.toString(),
-                          style:
-                              const TextStyle(
-                            fontSize: 20,
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
-                        ),
-
-                        IconButton(
-
-                          onPressed: () {
-
-                            setState(() {
-                              jumlah++;
-                            });
-                          },
-
-                          icon:
-                              const Icon(Icons.add),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   const SizedBox(height: 20),
 
-                  buildInput(
-                    label: "Harga per item",
-                    hint: "35000",
-                    controller:
-                        hargaController,
-                    number: true,
+                  // ── QTY + ADD BUTTON ──────────────────
+                  Row(
+                    children: [
+                      // QTY stepper
+                      Container(
+                        decoration: BoxDecoration(
+                          color: kCardBg,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            _qtyStepButton(
+                              icon: Icons.remove,
+                              onTap: () {
+                                final v = int.tryParse(qtyController.text) ?? 1;
+                                if (v > 1) qtyController.text = "${v - 1}";
+                              },
+                            ),
+                            SizedBox(
+                              width: 44,
+                              child: TextField(
+                                controller: qtyController,
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            _qtyStepButton(
+                              icon: Icons.add,
+                              onTap: () {
+                                final v = int.tryParse(qtyController.text) ?? 1;
+                                qtyController.text = "${v + 1}";
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Add to cart button
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: addToCart,
+                            icon: const Icon(Icons.add_shopping_cart,
+                                color: Colors.white, size: 18),
+                            label: const Text(
+                              "Tambah ke Cart",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -484,193 +463,213 @@ class _InputOrderPageState
 
             const SizedBox(height: 16),
 
+            // ── CART ────────────────────────────────────
+            if (cart.isNotEmpty)
+              _buildSection(
+                title: "Daftar Layanan (${cart.length} item)",
+                child: Column(
+                  children: List.generate(cart.length, (index) {
+                    final item = cart[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: kCardBg,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          // Info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item["layanan"],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${item["qty"]} x ${rupiah(item["harga"])}",
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  rupiah(item["subtotal"]),
+                                  style: const TextStyle(
+                                    color: kPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
+                          // Qty controls
+                          Row(
+                            children: [
+                              _cartQtyButton(
+                                icon: Icons.remove,
+                                onTap: () => updateQty(index, -1),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Text(
+                                  "${item["qty"]}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                              _cartQtyButton(
+                                icon: Icons.add,
+                                onTap: () => updateQty(index, 1),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => removeItem(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.delete_outline,
+                                      color: Colors.red.shade400, size: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
 
-            // =====================================
-            // PEMBAYARAN
-            // =====================================
+            if (cart.isNotEmpty) const SizedBox(height: 16),
 
-            buildSection(
-
+            // ── PEMBAYARAN ──────────────────────────────
+            _buildSection(
               title: "Pembayaran",
-
               child: Column(
-
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  const Text(
-                    "Metode Pembayaran",
-                  ),
-
+                  const Text("Metode Pembayaran",
+                      style: TextStyle(fontSize: 13)),
                   const SizedBox(height: 14),
-
                   Row(
-
                     children: [
-
-                      paymentItem(
-                        "Tunai",
-                        Icons.payments_outlined,
-                      ),
-
+                      _paymentItem("Tunai", Icons.payments_outlined),
                       const SizedBox(width: 10),
-
-                      paymentItem(
-                        "QRIS",
-                        Icons.qr_code_2,
-                      ),
-
+                      _paymentItem("QRIS", Icons.qr_code_2),
                       const SizedBox(width: 10),
-
-                      paymentItem(
-                        "Transfer",
-                        Icons.account_balance,
-                      ),
+                      _paymentItem("Transfer", Icons.account_balance),
                     ],
                   ),
-
                   const SizedBox(height: 20),
-
-                  buildInput(
-                    label:
-                        "Catatan (Opsional)",
-                    hint:
-                        "Tambahkan catatan khusus...",
-                    controller:
-                        catatanController,
+                  _buildInput(
+                    label: "Catatan (Opsional)",
+                    hint: "Tambahkan catatan khusus...",
+                    controller: catatanController,
                     maxLines: 3,
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-
-
-            // =====================================
-            // TOTAL
-            // =====================================
-
+            // ── TOTAL ───────────────────────────────────
             Container(
-
-              padding:
-                  const EdgeInsets.all(18),
-
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-
                 color: Colors.white,
-
-                borderRadius:
-                    BorderRadius.circular(
-                  18,
-                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  )
+                ],
               ),
-
               child: Row(
-
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-
                   Column(
-
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
-                      const Text(
-                        "Total Harga",
-                      ),
-
+                      const Text("Total Pembayaran",
+                          style: TextStyle(color: Colors.grey, fontSize: 13)),
                       const SizedBox(height: 6),
-
                       Text(
-                        "Rp $total",
-
-                        style:
-                            const TextStyle(
-                          fontSize: 32,
-                          fontWeight:
-                              FontWeight.bold,
-                          color:
-                              Color(0xFF5B2DA3),
+                        rupiah(total),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: kPrimary,
                         ),
                       ),
                     ],
                   ),
-
-                  const Text(
-                    "⚠ Akan tersimpan\nke Google Sheets",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontSize: 11,
-                    ),
-                  )
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Icon(Icons.cloud_upload_outlined,
+                          color: Colors.grey, size: 20),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Simpan ke\nGoogle Sheets",
+                        textAlign: TextAlign.right,
+                        style:
+                            TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-
-
-            // =====================================
-            // BUTTON
-            // =====================================
-
+            // ── SUBMIT BUTTON ───────────────────────────
             SizedBox(
-
               width: double.infinity,
               height: 56,
-
               child: ElevatedButton(
-
-                onPressed:
-                    isLoading
-                        ? null
-                        : simpanData,
-
-                style:
-                    ElevatedButton.styleFrom(
-
-                  backgroundColor:
-                      const Color(
-                    0xFF5B2DA3,
-                  ),
-
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      16,
-                    ),
+                onPressed: isLoading ? null : simpanData,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimary,
+                  disabledBackgroundColor: kPrimary.withOpacity(0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-
-                child:
-                    isLoading
-
-                        ? const CircularProgressIndicator(
-                            color: Colors.white,
-                          )
-
-                        : const Text(
-
-                            "Simpan Transaksi",
-
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight:
-                                  FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : const Text(
+                        "Simpan Transaksi",
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
 
@@ -681,196 +680,128 @@ class _InputOrderPageState
     );
   }
 
-
-
   // =====================================
-  // WIDGET
+  // HELPER WIDGETS
   // =====================================
 
-  Widget buildSection({
-    required String title,
-    required Widget child,
-  }) {
-
+  Widget _buildSection({required String title, required Widget child}) {
     return Container(
-
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
-
         color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
-
       child: Column(
-
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Text(
             title,
-
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-
-          const SizedBox(height: 18),
-
-          child
+          const SizedBox(height: 16),
+          child,
         ],
       ),
     );
   }
 
-
-
-  Widget buildInput({
+  Widget _buildInput({
     required String label,
     required String hint,
     required TextEditingController controller,
-    bool number = false,
+    TextInputType inputType = TextInputType.text,
     int maxLines = 1,
   }) {
-
     return Column(
-
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-          ),
-        ),
-
+        Text(label, style: const TextStyle(fontSize: 13, color: Colors.black87)),
         const SizedBox(height: 8),
-
         TextField(
-
           controller: controller,
-
-          keyboardType:
-              number
-                  ? TextInputType.number
-                  : TextInputType.text,
-
+          keyboardType: inputType,
           maxLines: maxLines,
-
-          onChanged: (_) {
-            setState(() {});
-          },
-
           decoration: InputDecoration(
-
             hintText: hint,
-
+            hintStyle: TextStyle(color: Colors.grey.shade400),
             filled: true,
-
-            fillColor:
-                const Color(0xFFF7F4FA),
-
-            border:
-                OutlineInputBorder(
-
-              borderRadius:
-                  BorderRadius.circular(
-                14,
-              ),
-
-              borderSide:
-                  BorderSide.none,
+            fillColor: const Color(0xFFF7F4FA),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
             ),
           ),
-        )
+        ),
       ],
     );
   }
 
+  Widget _qtyStepButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        child: Icon(icon, size: 18, color: kPrimary),
+      ),
+    );
+  }
 
+  Widget _cartQtyButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: kPrimaryLight,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 16, color: kPrimary),
+      ),
+    );
+  }
 
-  Widget paymentItem(
-    String value,
-    IconData icon,
-  ) {
-
-    bool selected =
-        metode == value;
-
+  Widget _paymentItem(String value, IconData icon) {
+    final bool selected = metode == value;
     return Expanded(
-
       child: GestureDetector(
-
-        onTap: () {
-
-          setState(() {
-            metode = value;
-          });
-        },
-
-        child: Container(
-
-          padding:
-              const EdgeInsets.symmetric(
-            vertical: 16,
-          ),
-
+        onTap: () => setState(() => metode = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-
-            color: selected
-                ? const Color(0xFFF3E8FF)
-                : Colors.white,
-
-            borderRadius:
-                BorderRadius.circular(
-              14,
-            ),
-
+            color: selected ? kPrimaryLight : Colors.white,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected
-                  ? const Color(
-                      0xFF5B2DA3,
-                    )
-                  : Colors.grey.shade300,
+              color: selected ? kPrimary : Colors.grey.shade300,
             ),
           ),
-
           child: Column(
-
             children: [
-
-              Icon(
-                icon,
-                color: selected
-                    ? const Color(
-                        0xFF5B2DA3,
-                      )
-                    : Colors.black54,
-              ),
-
+              Icon(icon, color: selected ? kPrimary : Colors.black54),
               const SizedBox(height: 8),
-
               Text(
                 value,
-
                 style: TextStyle(
-                  color: selected
-                      ? const Color(
-                          0xFF5B2DA3,
-                        )
-                      : Colors.black,
+                  color: selected ? kPrimary : Colors.black,
+                  fontWeight:
+                      selected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 12,
                 ),
-              )
+              ),
             ],
           ),
         ),

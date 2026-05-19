@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../home/home_page.dart';
+import '../../services/api_service.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -16,16 +17,14 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState
     extends State<HistoryPage> {
 
-  final String apiUrl =
-      "https://script.google.com/macros/s/AKfycbzE5GT3hHsNkTP7PVlxng79VBCwRiTqi0UolVR3-lSdUR_nah-l_7ZvAR9aKv-N-lBt/exec";
-
   List orders = [];
 
   List filteredOrders = [];
 
   bool isLoading = true;
 
-  String selectedFilter = "Hari Ini";
+  String selectedFilter =
+      "Hari Ini";
 
   final searchController =
       TextEditingController();
@@ -50,9 +49,20 @@ class _HistoryPageState
   // FETCH
   // =====================================
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchOrders()
+  async {
 
     try {
+
+      // =====================================
+      // GET DYNAMIC API URL
+      // =====================================
+
+      final apiUrl =
+          await ApiService
+              .getApiUrl();
+
+
 
       final response =
           await http.get(
@@ -62,27 +72,61 @@ class _HistoryPageState
         ),
       );
 
+
+
       final data =
-          jsonDecode(response.body);
+          jsonDecode(
+        response.body,
+      );
+
+
+
+      if (!mounted) return;
+
+
 
       setState(() {
 
-        orders = data.reversed.toList();
+        orders =
+            data.reversed
+                .toList();
 
-        filteredOrders = orders;
+        filteredOrders =
+            orders;
 
-        isLoading = false;
+        isLoading =
+            false;
       });
 
     } catch (e) {
 
-      print(e);
+      debugPrint(
+        e.toString(),
+      );
+
+      if (!mounted) return;
 
       setState(() {
-        isLoading = false;
+
+        isLoading =
+            false;
       });
+
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+
+            "Gagal mengambil data: $e",
+          ),
+        ),
+      );
     }
   }
+
 
 
 

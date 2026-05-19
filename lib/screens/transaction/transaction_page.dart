@@ -2,20 +2,24 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../services/api_service.dart';
 
-class TransactionPage extends StatefulWidget {
-  const TransactionPage({super.key});
+class TransactionPage
+    extends StatefulWidget {
+
+  const TransactionPage({
+    super.key,
+  });
 
   @override
-  State<TransactionPage> createState() =>
-      _TransactionPageState();
+  State<TransactionPage>
+      createState() =>
+
+          _TransactionPageState();
 }
 
 class _TransactionPageState
     extends State<TransactionPage> {
-
-  final String apiUrl =
-  "https://script.google.com/macros/s/AKfycbzE5GT3hHsNkTP7PVlxng79VBCwRiTqi0UolVR3-lSdUR_nah-l_7ZvAR9aKv-N-lBt/exec";
 
   List orders = [];
 
@@ -23,7 +27,8 @@ class _TransactionPageState
 
   bool isLoading = true;
 
-  String selectedStatus = "Semua";
+  String selectedStatus =
+      "Semua";
 
   final searchController =
       TextEditingController();
@@ -48,13 +53,27 @@ class _TransactionPageState
   // FETCH
   // =====================================
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchOrders()
+  async {
 
     setState(() {
+
       isLoading = true;
     });
 
+
+
     try {
+
+      // =====================================
+      // GET DYNAMIC API URL
+      // =====================================
+
+      final apiUrl =
+          await ApiService
+              .getApiUrl();
+
+
 
       final response =
           await http.get(
@@ -64,27 +83,63 @@ class _TransactionPageState
         ),
       );
 
+
+
       final data =
-          jsonDecode(response.body);
+          jsonDecode(
+        response.body,
+      );
+
+
+
+      if (!mounted) return;
+
+
 
       setState(() {
 
-        orders = data.reversed.toList();
+        orders =
+            data.reversed
+                .toList();
 
-        filteredOrders = orders;
+        filteredOrders =
+            orders;
 
-        isLoading = false;
+        isLoading =
+            false;
       });
 
     } catch (e) {
 
+      if (!mounted) return;
+
+
+
       setState(() {
-        isLoading = false;
+
+        isLoading =
+            false;
       });
 
-      print(e);
+      debugPrint(
+        e.toString(),
+      );
+
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+
+            "Gagal mengambil data: $e",
+          ),
+        ),
+      );
     }
   }
+
 
 
 
@@ -140,36 +195,70 @@ class _TransactionPageState
   // =====================================
 
   Future<void> updateStatus(
+
     dynamic id,
+
     String status,
+
   ) async {
 
     try {
+
+      // =====================================
+      // GET DYNAMIC API URL
+      // =====================================
+
+      final apiUrl =
+          await ApiService
+              .getApiUrl();
+
+
 
       await http.post(
 
         Uri.parse(apiUrl),
 
         headers: {
+
           "Content-Type":
-              "application/json"
+              "application/json",
         },
 
         body: jsonEncode({
 
-          "action": "update",
+          "action":
+              "update",
 
-          "id": id,
+          "id":
+              id,
 
-          "status": status,
+          "status":
+              status,
         }),
       );
+
+
 
       fetchOrders();
 
     } catch (e) {
 
-      print(e);
+      debugPrint(
+        e.toString(),
+      );
+
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+
+            "Gagal update status: $e",
+          ),
+        ),
+      );
     }
   }
 

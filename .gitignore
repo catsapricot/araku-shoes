@@ -32,7 +32,8 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
-
+android/.gradle/
+ios/Pods/
 # Symbolication related
 app.*.symbols
 

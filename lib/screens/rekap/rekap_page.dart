@@ -7,8 +7,10 @@ import 'package:intl/intl.dart';
 
 import '../history/history_page.dart';
 import '../home/home_page.dart';
+import '../../services/api_service.dart';
 
 class RekapPage extends StatefulWidget {
+
   const RekapPage({super.key});
 
   @override
@@ -19,18 +21,19 @@ class RekapPage extends StatefulWidget {
 class _RekapPageState
     extends State<RekapPage> {
 
-  final String apiUrl =
-      "https://script.google.com/macros/s/AKfycbzE5GT3hHsNkTP7PVlxng79VBCwRiTqi0UolVR3-lSdUR_nah-l_7ZvAR9aKv-N-lBt/exec";
-
   List orders = [];
 
   bool isLoading = true;
 
   int totalIncome = 0;
 
-  int selectedMonth = DateTime.now().month;
+  int selectedMonth =
+      DateTime.now().month;
 
-  int selectedYear = DateTime.now().year;
+  int selectedYear =
+      DateTime.now().year;
+
+
 
   @override
   void initState() {
@@ -46,9 +49,20 @@ class _RekapPageState
   // FETCH DATA
   // =====================================
 
-  Future<void> fetchData() async {
+  Future<void> fetchData()
+  async {
 
     try {
+
+      // =====================================
+      // GET DYNAMIC API URL
+      // =====================================
+
+      final apiUrl =
+          await ApiService
+              .getApiUrl();
+
+
 
       final response =
           await http.get(
@@ -58,10 +72,18 @@ class _RekapPageState
         ),
       );
 
+
+
       final data =
-          jsonDecode(response.body);
+          jsonDecode(
+        response.body,
+      );
+
+
 
       int income = 0;
+
+
 
       for (var item in data) {
 
@@ -72,46 +94,85 @@ class _RekapPageState
             item["tanggal"],
           );
 
+
+
           if (
 
-              date.month == selectedMonth
+              date.month ==
+                  selectedMonth &&
 
-              &&
-
-              date.year == selectedYear
+              date.year ==
+                  selectedYear
 
           ) {
 
             income +=
+
                 int.tryParse(
+
                       item["total"]
                           .toString(),
+
                     ) ??
+
                     0;
           }
 
-        } catch (e) {}
+        } catch (e) {
+
+          debugPrint(
+            e.toString(),
+          );
+        }
       }
+
+
+
+      if (!mounted) return;
+
+
 
       setState(() {
 
         orders = data;
 
-        totalIncome = income;
+        totalIncome =
+            income;
 
-        isLoading = false;
+        isLoading =
+            false;
       });
 
     } catch (e) {
 
-      print(e);
+      debugPrint(
+        e.toString(),
+      );
+
+      if (!mounted) return;
+
+
 
       setState(() {
-        isLoading = false;
+
+        isLoading =
+            false;
       });
+
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+
+            "Gagal mengambil data: $e",
+          ),
+        ),
+      );
     }
   }
-
 
 
   // =====================================
