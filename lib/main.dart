@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'screens/main_shell.dart';
+import 'screens/setup/setup_wizard_page.dart';
+import 'services/api_service.dart';
 
 void main() async {
 
@@ -9,11 +11,16 @@ void main() async {
 
   await initializeDateFormatting('id_ID', null);
 
-  runApp(const MyApp());
+  final hasUrl = await ApiService.hasApiUrl();
+
+  runApp(MyApp(showSetup: !hasUrl));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+
+  final bool showSetup;
+
+  const MyApp({super.key, required this.showSetup});
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +29,16 @@ class MyApp extends StatelessWidget {
 
       debugShowCheckedModeBanner: false,
 
-      title: 'Laundry App',
+      title: 'Araku Shoes Care',
 
       theme: ThemeData(
         fontFamily: 'Poppins',
         scaffoldBackgroundColor: Colors.white,
       ),
 
-      home: const MainShell(),
+      home: showSetup
+          ? const SetupWizardPage()
+          : const MainShell(),
     );
   }
 }

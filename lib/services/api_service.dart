@@ -33,6 +33,18 @@ class ApiService {
 
 
   // =====================================
+  // HAS URL — true only if user explicitly
+  // saved a URL (first-run detection)
+  // =====================================
+
+  static Future<bool> hasApiUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey("api_url");
+  }
+
+
+
+  // =====================================
   // GET URL
   // =====================================
 
