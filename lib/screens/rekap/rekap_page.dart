@@ -211,7 +211,9 @@ class _RekapPageState
                   0);
         }
 
-      } catch (e) {}
+      } catch (e) {
+        debugPrint("getWeeklySpots: $e");
+      }
     }
 
     return List.generate(

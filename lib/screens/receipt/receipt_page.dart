@@ -272,7 +272,7 @@ class ReceiptPage extends StatelessWidget {
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
 

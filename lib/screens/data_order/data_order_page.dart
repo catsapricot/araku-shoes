@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../../services/api_service.dart';
+
 class DataOrderPage extends StatefulWidget {
   const DataOrderPage({super.key});
 
@@ -12,9 +14,6 @@ class DataOrderPage extends StatefulWidget {
 }
 
 class _DataOrderPageState extends State<DataOrderPage> {
-
-  final String apiUrl =
-      "https://script.google.com/macros/s/AKfycbzE5GT3hHsNkTP7PVlxng79VBCwRiTqi0UolVR3-lSdUR_nah-l_7ZvAR9aKv-N-lBt/exec";
 
   List orders = [];
 
@@ -26,9 +25,17 @@ class _DataOrderPageState extends State<DataOrderPage> {
     getOrders();
   }
 
-    Future<void> updateStatus(int id) async {
+
+
+  // =====================================
+  // UPDATE STATUS
+  // =====================================
+
+  Future<void> updateStatus(int id) async {
 
     try {
+
+      final apiUrl = await ApiService.getApiUrl();
 
       await http.post(
 
@@ -39,11 +46,9 @@ class _DataOrderPageState extends State<DataOrderPage> {
         },
 
         body: jsonEncode({
-
           "action": "update",
           "id": id,
-          "status": "Selesai"
-
+          "status": "Selesai",
         }),
       );
 
@@ -51,8 +56,9 @@ class _DataOrderPageState extends State<DataOrderPage> {
 
     } catch (e) {
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
 
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),
         ),
@@ -60,30 +66,46 @@ class _DataOrderPageState extends State<DataOrderPage> {
     }
   }
 
-    Future<void> getOrders() async {
 
-      try {
 
-        final response = await http.get(
-          Uri.parse("$apiUrl?all=true"),
-        );
+  // =====================================
+  // GET ORDERS
+  // =====================================
 
-        print(response.body);
+  Future<void> getOrders() async {
 
-        final data = jsonDecode(response.body);
+    try {
 
-        setState(() {
-          orders = data;
-          isLoading = false;
-        });
+      final apiUrl = await ApiService.getApiUrl();
 
-      } catch (e) {
+      final response = await http.get(
+        Uri.parse("$apiUrl?all=true"),
+      );
 
-        setState(() {
-          isLoading = false;
-        });
-      }
+      debugPrint(response.body);
+
+      final data = jsonDecode(response.body);
+
+      if (!mounted) return;
+
+      setState(() {
+        orders = data;
+        isLoading = false;
+      });
+
+    } catch (e) {
+
+      debugPrint(e.toString());
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
     }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +145,7 @@ class _DataOrderPageState extends State<DataOrderPage> {
 
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                       )
                     ],
@@ -189,11 +211,11 @@ class _DataOrderPageState extends State<DataOrderPage> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          
                         ),
                       ),
 
                       const SizedBox(height: 16),
+
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

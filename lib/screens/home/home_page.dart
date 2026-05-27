@@ -352,24 +352,35 @@ class _HomePageState
                     controller.text
                         .trim();
 
-                if (url.isEmpty)
+                if (url.isEmpty) {
                   return;
+                }
+
+                // ─ Capture context-dependent refs
+                // BEFORE the async gap so the
+                // linter (use_build_context_synchronously)
+                // is satisfied and the code is safe
+                // if the dialog or widget unmounts.
+                final messenger =
+                    ScaffoldMessenger.of(
+                  context,
+                );
+
+                final nav =
+                    Navigator.of(ctx);
 
                 await ApiService
                     .saveApiUrl(
                   url,
                 );
 
-                if (!mounted)
+                if (!mounted) {
                   return;
+                }
 
-                Navigator.pop(
-                  ctx,
-                );
+                nav.pop();
 
-                ScaffoldMessenger.of(
-                        context)
-                    .showSnackBar(
+                messenger.showSnackBar(
 
                   SnackBar(
 
@@ -709,8 +720,9 @@ class _HomePageState
 
                                 color:
                                     kTeal
-                                        .withOpacity(
-                                  0.1,
+                                        .withValues(
+                                  alpha:
+                                      0.1,
                                 ),
 
                                 shape:

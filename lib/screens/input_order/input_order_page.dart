@@ -450,7 +450,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
                             boxShadow: selected
                                 ? [
                                     BoxShadow(
-                                      color: kPrimary.withOpacity(0.25),
+                                      color: kPrimary.withValues(alpha: 0.25),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     )
@@ -697,7 +697,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   )
@@ -750,7 +750,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
                 onPressed: isLoading ? null : simpanData,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kPrimary,
-                  disabledBackgroundColor: kPrimary.withOpacity(0.5),
+                  disabledBackgroundColor: kPrimary.withValues(alpha: 0.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -793,7 +793,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           )
