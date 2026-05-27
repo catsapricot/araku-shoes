@@ -9,9 +9,7 @@ import '../../services/api_service.dart';
 import '../../widgets/dashboard/dashboard_header.dart';
 import '../../widgets/dashboard/dashboard_order_card.dart';
 
-import '../history/history_page.dart';
 import '../input_order/input_order_page.dart';
-import '../rekap/rekap_page.dart';
 import '../transaction/transaction_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -106,9 +104,10 @@ class _HomePageState
                 ) ??
                 0;
 
+        // "Sudah Diambil" = transaksi selesai total
         if (
           order["status"] ==
-          "Selesai"
+          "Sudah Diambil"
         ) {
 
           finished++;
@@ -119,14 +118,14 @@ class _HomePageState
 
       setState(() {
 
+        // Dashboard aktif: tampilkan semua
+        // kecuali "Sudah Diambil" (selesai total)
         orders =
             data.where((order) {
 
           return
               order["status"] !=
-                      "Selesai" &&
-                  order["status"] !=
-                      "Diambil";
+                  "Sudah Diambil";
         }).toList();
 
         totalIncome =
@@ -1001,120 +1000,6 @@ class _HomePageState
 
 
 
-      // =====================================
-      // BOTTOM NAVIGATION
-      // =====================================
-
-      bottomNavigationBar:
-          Container(
-
-        height: 80,
-
-        decoration:
-            const BoxDecoration(
-
-          color:
-              Colors.white,
-
-          borderRadius:
-              BorderRadius.only(
-
-            topLeft:
-                Radius.circular(
-              24,
-            ),
-
-            topRight:
-                Radius.circular(
-              24,
-            ),
-          ),
-
-          boxShadow: [
-
-            BoxShadow(
-
-              color:
-                  Colors.black12,
-
-              blurRadius:
-                  10,
-            )
-          ],
-        ),
-
-        child: Row(
-
-          mainAxisAlignment:
-              MainAxisAlignment
-                  .spaceAround,
-
-          children: [
-
-            buildNavItem(
-
-              icon:
-                  Icons.home_outlined,
-
-              label:
-                  "Home",
-
-              active:
-                  true,
-            ),
-
-            buildNavItem(
-
-              icon:
-                  Icons.history,
-
-              label:
-                  "Riwayat",
-
-              onTap:
-                  () {
-
-                Navigator.push(
-
-                  context,
-
-                  MaterialPageRoute(
-
-                    builder:
-                        (_) =>
-                            const HistoryPage(),
-                  ),
-                );
-              },
-            ),
-
-            buildNavItem(
-
-              icon:
-                  Icons.receipt_long_outlined,
-
-              label:
-                  "Rekap",
-
-              onTap:
-                  () {
-
-                Navigator.push(
-
-                  context,
-
-                  MaterialPageRoute(
-
-                    builder:
-                        (_) =>
-                            const RekapPage(),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
-      ),
     );
   }
 
@@ -1199,70 +1084,4 @@ class _HomePageState
 
 
 
-  // =====================================
-  // NAVIGATION ITEM
-  // =====================================
-
-  Widget buildNavItem({
-
-    required IconData icon,
-
-    required String label,
-
-    bool active = false,
-
-    VoidCallback? onTap,
-  }) {
-
-    final color =
-
-        active
-
-            ? const Color(
-                0xFF7C3AED,
-              )
-
-            : Colors.black54;
-
-    return GestureDetector(
-
-      onTap: onTap,
-
-      child: Column(
-
-        mainAxisAlignment:
-            MainAxisAlignment
-                .center,
-
-        children: [
-
-          Icon(
-            icon,
-            color: color,
-          ),
-
-          const SizedBox(
-              height: 4),
-
-          Text(
-
-            label,
-
-            style: TextStyle(
-
-              color: color,
-
-              fontWeight:
-
-                  active
-
-                      ? FontWeight.bold
-
-                      : FontWeight.normal,
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }

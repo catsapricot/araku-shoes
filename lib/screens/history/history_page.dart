@@ -1,9 +1,7 @@
 import 'dart:convert';
-import '../rekap/rekap_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import '../home/home_page.dart';
 import '../../services/api_service.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -582,57 +580,6 @@ class _HistoryPageState
 
 
 
-                    // =====================================
-                    // BOTTOM NAV
-                    // =====================================
-
-                    Container(
-
-                      padding:
-                          const EdgeInsets.symmetric(
-                        vertical: 12,
-                      ),
-
-                      decoration: const BoxDecoration(
-
-                        color: Colors.white,
-
-                        border: Border(
-                          top: BorderSide(
-                            color:
-                                Color(0xFFE5E7EB),
-                          ),
-                        ),
-                      ),
-
-                      child: Row(
-
-                        mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceAround,
-
-                        children: [
-
-                          navItem(
-                            Icons.home_outlined,
-                            "Home",
-                            false,
-                          ),
-
-                          navItem(
-                            Icons.history,
-                            "Riwayat",
-                            true,
-                          ),
-
-                          navItem(
-                            Icons.receipt_long_outlined,
-                            "Rekap",
-                            false,
-                          ),
-                        ],
-                      ),
-                    )
                   ],
                 ),
     );
@@ -697,87 +644,4 @@ class _HistoryPageState
 
 
 
-  // =====================================
-  // NAV ITEM
-  // =====================================
-
-    Widget navItem(
-    IconData icon,
-    String title,
-    bool active,
-  ) {
-
-    return GestureDetector(
-
-      onTap: () {
-
-        // HOME
-        if (title == "Home") {
-
-          Navigator.pushReplacement(
-
-            context,
-
-            MaterialPageRoute(
-
-              builder: (_) =>
-                  const HomePage(),
-            ),
-          );
-        }
-
-        // REKAP
-        else if (title == "Rekap") {
-
-          Navigator.pushReplacement(
-
-            context,
-
-            MaterialPageRoute(
-
-              builder: (_) =>
-                  const RekapPage(),
-            ),
-          );
-        }
-      },
-
-      child: Column(
-
-        mainAxisSize: MainAxisSize.min,
-
-        children: [
-
-          Icon(
-
-            icon,
-
-            color:
-                active
-                    ? const Color(
-                        0xFF5B2DA3,
-                      )
-                    : Colors.grey,
-          ),
-
-          const SizedBox(height: 4),
-
-          Text(
-
-            title,
-
-            style: TextStyle(
-
-              color:
-                  active
-                      ? const Color(
-                          0xFF5B2DA3,
-                        )
-                      : Colors.grey,
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }

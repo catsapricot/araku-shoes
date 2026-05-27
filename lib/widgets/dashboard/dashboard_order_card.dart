@@ -18,19 +18,31 @@ class DashboardOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    Color statusColor =
-        status == "Diproses"
-            ? const Color(0xFF7C3AED)
-            : status == "Menunggu"
-                ? const Color(0xFFEAB308)
-                : const Color(0xFF71717A);
+    // =========================================
+    // STATUS COLOR — sesuai flow baru:
+    // Diproses → Selesai → Belum Diambil → Sudah Diambil
+    // =========================================
 
-    Color statusBg =
-        status == "Diproses"
-            ? const Color(0xFFF3E8FF)
-            : status == "Menunggu"
-                ? const Color(0xFFFEF9C3)
-                : const Color(0xFFF4F4F5);
+    late final Color statusColor;
+    late final Color statusBg;
+
+    switch (status) {
+      case "Diproses":
+        statusColor = const Color(0xFF7C3AED); // Ungu
+        statusBg    = const Color(0xFFF3E8FF);
+        break;
+      case "Selesai":
+        statusColor = const Color(0xFF0F766E); // Teal
+        statusBg    = const Color(0xFFD1FAE5);
+        break;
+      case "Belum Diambil":
+        statusColor = const Color(0xFFB45309); // Amber
+        statusBg    = const Color(0xFFFEF9C3);
+        break;
+      default: // "Sudah Diambil" & lainnya
+        statusColor = const Color(0xFF71717A); // Abu
+        statusBg    = const Color(0xFFF4F4F5);
+    }
 
     return Container(
 
@@ -46,7 +58,7 @@ class DashboardOrderCard extends StatelessWidget {
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 14,
             offset: const Offset(0, 6),
           )

@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../history/history_page.dart';
-import '../home/home_page.dart';
 import '../../services/api_service.dart';
 
 class RekapPage extends StatefulWidget {
@@ -815,55 +813,6 @@ class _RekapPageState
 
 
 
-      // =====================================
-      // BOTTOM NAV
-      // =====================================
-
-      bottomNavigationBar: Container(
-
-        padding:
-            const EdgeInsets.symmetric(
-          vertical: 12,
-        ),
-
-        decoration: const BoxDecoration(
-
-          color: Colors.white,
-
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFFE5E7EB),
-            ),
-          ),
-        ),
-
-        child: Row(
-
-          mainAxisAlignment:
-              MainAxisAlignment.spaceAround,
-
-          children: [
-
-            navItem(
-              Icons.home_outlined,
-              "Home",
-              false,
-            ),
-
-            navItem(
-              Icons.history,
-              "Riwayat",
-              false,
-            ),
-
-            navItem(
-              Icons.receipt_long_outlined,
-              "Rekap",
-              true,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -980,85 +929,4 @@ class _RekapPageState
 
 
 
-  // =====================================
-  // NAV ITEM
-  // =====================================
-
-  Widget navItem(
-    IconData icon,
-    String title,
-    bool active,
-  ) {
-
-    return GestureDetector(
-
-      onTap: () {
-
-        if (title == "Home") {
-
-          Navigator.pushReplacement(
-
-            context,
-
-            MaterialPageRoute(
-
-              builder: (_) =>
-                  const HomePage(),
-            ),
-          );
-        }
-
-        else if (title == "Riwayat") {
-
-          Navigator.pushReplacement(
-
-            context,
-
-            MaterialPageRoute(
-
-              builder: (_) =>
-                  const HistoryPage(),
-            ),
-          );
-        }
-      },
-
-      child: Column(
-
-        mainAxisSize: MainAxisSize.min,
-
-        children: [
-
-          Icon(
-
-            icon,
-
-            color:
-                active
-                    ? const Color(
-                        0xFF5B2DA3,
-                      )
-                    : Colors.grey,
-          ),
-
-          const SizedBox(height: 4),
-
-          Text(
-
-            title,
-
-            style: TextStyle(
-
-              color:
-                  active
-                      ? const Color(
-                          0xFF5B2DA3,
-                        )
-                      : Colors.grey,
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }

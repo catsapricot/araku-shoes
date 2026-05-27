@@ -14,7 +14,6 @@ class TransactionPage
   @override
   State<TransactionPage>
       createState() =>
-
           _TransactionPageState();
 }
 
@@ -22,13 +21,9 @@ class _TransactionPageState
     extends State<TransactionPage> {
 
   List orders = [];
-
   List filteredOrders = [];
-
   bool isLoading = true;
-
-  String selectedStatus =
-      "Semua";
+  String selectedStatus = "Semua";
 
   final searchController =
       TextEditingController();
@@ -41,9 +36,7 @@ class _TransactionPageState
 
   @override
   void initState() {
-
     super.initState();
-
     fetchOrders();
   }
 
@@ -53,86 +46,45 @@ class _TransactionPageState
   // FETCH
   // =====================================
 
-  Future<void> fetchOrders()
-  async {
+  Future<void> fetchOrders() async {
 
     setState(() {
-
       isLoading = true;
     });
 
-
-
     try {
 
-      // =====================================
-      // GET DYNAMIC API URL
-      // =====================================
-
       final apiUrl =
-          await ApiService
-              .getApiUrl();
+          await ApiService.getApiUrl();
 
-
-
-      final response =
-          await http.get(
-
-        Uri.parse(
-          "$apiUrl?all=true",
-        ),
+      final response = await http.get(
+        Uri.parse("$apiUrl?all=true"),
       );
 
-
-
-      final data =
-          jsonDecode(
-        response.body,
-      );
-
-
+      final data = jsonDecode(response.body);
 
       if (!mounted) return;
 
-
-
       setState(() {
-
-        orders =
-            data.reversed
-                .toList();
-
-        filteredOrders =
-            orders;
-
-        isLoading =
-            false;
+        orders = data.reversed.toList();
+        filteredOrders = orders;
+        isLoading = false;
       });
 
     } catch (e) {
 
       if (!mounted) return;
 
-
-
       setState(() {
-
-        isLoading =
-            false;
+        isLoading = false;
       });
 
-      debugPrint(
-        e.toString(),
-      );
+      debugPrint(e.toString());
 
-      ScaffoldMessenger.of(
-              context)
+      ScaffoldMessenger.of(context)
           .showSnackBar(
-
         SnackBar(
-
           content: Text(
-
             "Gagal mengambil data: $e",
           ),
         ),
@@ -142,47 +94,33 @@ class _TransactionPageState
 
 
 
-
   // =====================================
   // FILTER
   // =====================================
 
   void filterOrders() {
 
-    String keyword =
-        searchController.text
-            .toLowerCase();
+    final keyword =
+        searchController.text.toLowerCase();
 
     setState(() {
 
-      filteredOrders =
-          orders.where((item) {
+      filteredOrders = orders.where((item) {
 
-        bool matchSearch =
-
+        final matchSearch =
             item["nama"]
                 .toString()
                 .toLowerCase()
-                .contains(keyword)
-
-            ||
-
+                .contains(keyword) ||
             item["id"]
                 .toString()
                 .contains(keyword);
 
-        bool matchStatus =
+        final matchStatus =
+            selectedStatus == "Semua" ||
+            item["status"] == selectedStatus;
 
-            selectedStatus == "Semua"
-
-            ||
-
-            item["status"] ==
-                selectedStatus;
-
-        return
-            matchSearch &&
-            matchStatus;
+        return matchSearch && matchStatus;
 
       }).toList();
     });
@@ -195,66 +133,39 @@ class _TransactionPageState
   // =====================================
 
   Future<void> updateStatus(
-
     dynamic id,
-
     String status,
-
   ) async {
 
     try {
 
-      // =====================================
-      // GET DYNAMIC API URL
-      // =====================================
-
       final apiUrl =
-          await ApiService
-              .getApiUrl();
-
-
+          await ApiService.getApiUrl();
 
       await http.post(
-
         Uri.parse(apiUrl),
-
         headers: {
-
-          "Content-Type":
-              "application/json",
+          "Content-Type": "application/json",
         },
-
         body: jsonEncode({
-
-          "action":
-              "update",
-
-          "id":
-              id,
-
-          "status":
-              status,
+          "action": "update",
+          "id": id,
+          "status": status,
         }),
       );
-
-
 
       fetchOrders();
 
     } catch (e) {
 
-      debugPrint(
-        e.toString(),
-      );
+      debugPrint(e.toString());
 
-      ScaffoldMessenger.of(
-              context)
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
           .showSnackBar(
-
         SnackBar(
-
           content: Text(
-
             "Gagal update status: $e",
           ),
         ),
@@ -265,31 +176,142 @@ class _TransactionPageState
 
 
   // =====================================
+  // DOUBLE CONFIRMATION — SUDAH DIAMBIL
+  // 2 popup sebelum status final ditetapkan
+  // =====================================
+
+  Future<void> confirmSudahDiambil(
+    dynamic id,
+  ) async {
+
+    // ── POPUP 1 ──────────────────────────
+
+    final confirm1 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          "Konfirmasi Pengambilan",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+          ),
+        ),
+        content: const Text(
+          "Apakah customer sudah mengambil laundry?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(ctx, false),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () =>
+                Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  const Color(0xFF0F766E),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Ya",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm1 != true) return;
+
+    if (!mounted) return;
+
+    // ── POPUP 2 ──────────────────────────
+
+    final confirm2 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          "Konfirmasi Akhir",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+          ),
+        ),
+        content: const Text(
+          "Status akan dianggap selesai permanen dan tidak bisa diubah lagi.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(ctx, false),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () =>
+                Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Ya, Tandai Selesai",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm2 != true) return;
+
+    await updateStatus(id, "Sudah Diambil");
+  }
+
+
+
+  // =====================================
   // STATUS COLOR
+  // Urutan: Diproses → Selesai →
+  //         Belum Diambil → Sudah Diambil
   // =====================================
 
   Color getStatusColor(String status) {
-
     switch (status) {
-
       case "Diproses":
-        return const Color(0xFF8B5CF6);
-
-      case "Menunggu":
-        return const Color(0xFFEAB308);
-
-      case "Diambil":
-        return Colors.blue;
-
+        return const Color(0xFF8B5CF6);   // Ungu
       case "Selesai":
-        return const Color(0xFF6B7280);
-
+        return const Color(0xFF0F766E);   // Teal
+      case "Belum Diambil":
+        return const Color(0xFFB45309);   // Amber
+      case "Sudah Diambil":
+        return const Color(0xFF6B7280);   // Abu
       default:
         return Colors.grey;
     }
   }
 
 
+
+  // =====================================
+  // BUILD
+  // =====================================
 
   @override
   Widget build(BuildContext context) {
@@ -300,28 +322,19 @@ class _TransactionPageState
           const Color(0xFFF6F7FB),
 
       appBar: AppBar(
-
         elevation: 0,
-
         backgroundColor:
             const Color(0xFFF6F7FB),
-
         leading: IconButton(
-
-          onPressed: () {
-            Navigator.pop(context);
-          },
-
+          onPressed: () =>
+              Navigator.pop(context),
           icon: const Icon(
             Icons.arrow_back,
             color: Colors.black,
           ),
         ),
-
         title: const Text(
-
           "Sedang Dikerjakan",
-
           style: TextStyle(
             color: Color(0xFF5B2DA3),
             fontWeight: FontWeight.bold,
@@ -330,86 +343,57 @@ class _TransactionPageState
       ),
 
       body: Column(
-
         children: [
 
           Padding(
-
-            padding:
-                const EdgeInsets.all(16),
-
+            padding: const EdgeInsets.all(16),
             child: Column(
-
               children: [
 
-                // =====================================
+                // =============================
                 // SEARCH
-                // =====================================
+                // =============================
 
                 TextField(
-
-                  controller:
-                      searchController,
-
-                  onChanged: (_) {
-                    filterOrders();
-                  },
-
+                  controller: searchController,
+                  onChanged: (_) => filterOrders(),
                   decoration: InputDecoration(
-
                     hintText:
                         "Cari pelanggan atau ID transaksi...",
-
                     prefixIcon:
                         const Icon(Icons.search),
-
                     filled: true,
-
                     fillColor: Colors.white,
-
-                    border:
-                        OutlineInputBorder(
-
+                    border: OutlineInputBorder(
                       borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
-
-                      borderSide:
-                          BorderSide.none,
+                          BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
-
-
-                // =====================================
-                // FILTER
-                // =====================================
+                // =============================
+                // FILTER CHIPS
+                // Urutan: Semua | Diproses |
+                //   Selesai | Belum Diambil |
+                //   Sudah Diambil
+                // =============================
 
                 SingleChildScrollView(
-
                   scrollDirection: Axis.horizontal,
-
                   child: Row(
-
                     children: [
-
                       filterChip("Semua"),
-
                       const SizedBox(width: 8),
-
-                      filterChip("Menunggu"),
-
-                      const SizedBox(width: 8),
-
                       filterChip("Diproses"),
-
                       const SizedBox(width: 8),
-
                       filterChip("Selesai"),
+                      const SizedBox(width: 8),
+                      filterChip("Belum Diambil"),
+                      const SizedBox(width: 8),
+                      filterChip("Sudah Diambil"),
                     ],
                   ),
                 ),
@@ -417,353 +401,33 @@ class _TransactionPageState
             ),
           ),
 
-
-
-          // =====================================
-          // LIST
-          // =====================================
+          // ===================================
+          // ORDER LIST
+          // ===================================
 
           Expanded(
-
-            child:
-
-                isLoading
-
-                    ? const Center(
-                        child:
-                            CircularProgressIndicator(),
-                      )
-
-                    : RefreshIndicator(
-
-                        onRefresh:
-                            fetchOrders,
-
-                        child: ListView.builder(
-
-                          padding:
-                              const EdgeInsets.all(
-                            16,
-                          ),
-
-                          itemCount:
-                              filteredOrders.length,
-
-                          itemBuilder:
-                              (context, index) {
-
-                            final item =
-                                filteredOrders[index];
-
-                            return Container(
-
-                              margin:
-                                  const EdgeInsets.only(
-                                bottom: 16,
-                              ),
-
-                              padding:
-                                  const EdgeInsets.all(
-                                16,
-                              ),
-
-                              decoration: BoxDecoration(
-
-                                color: Colors.white,
-
-                                borderRadius:
-                                    BorderRadius.circular(
-                                  20,
-                                ),
-
-                                boxShadow: [
-
-                                  BoxShadow(
-
-                                    color:
-                                        Colors.black
-                                            .withOpacity(
-                                      0.03,
-                                    ),
-
-                                    blurRadius: 10,
-                                  )
-                                ],
-                              ),
-
-                              child: Column(
-
-                                crossAxisAlignment:
-                                    CrossAxisAlignment
-                                        .start,
-
-                                children: [
-
-                                  Row(
-
-                                    mainAxisAlignment:
-                                        MainAxisAlignment
-                                            .spaceBetween,
-
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment
-                                            .start,
-
-                                    children: [
-
-                                      Flexible(
-
-                                        child: Column(
-
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment
-                                                  .start,
-
-                                          children: [
-
-                                            Text(
-
-                                              item["nama"],
-
-                                              overflow:
-                                                  TextOverflow
-                                                      .ellipsis,
-
-                                              style:
-                                                  const TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .bold,
-
-                                                fontSize:
-                                                    16,
-                                              ),
-                                            ),
-
-                                            const SizedBox(
-                                                height:
-                                                    4),
-
-                                            Text(
-
-                                              "INV-${item["id"]}",
-
-                                              overflow:
-                                                  TextOverflow
-                                                      .ellipsis,
-
-                                              style:
-                                                  const TextStyle(
-                                                color:
-                                                    Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 8),
-
-                                      Container(
-
-                                        padding:
-                                            const EdgeInsets.symmetric(
-                                          horizontal:
-                                              12,
-
-                                          vertical:
-                                              6,
-                                        ),
-
-                                        decoration:
-                                            BoxDecoration(
-
-                                          color:
-                                              getStatusColor(
-                                            item[
-                                                "status"],
-                                          ),
-
-                                          borderRadius:
-                                              BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-
-                                        child: Text(
-
-                                          item[
-                                              "status"],
-
-                                          style:
-                                              const TextStyle(
-                                            color:
-                                                Colors
-                                                    .white,
-
-                                            fontSize:
-                                                12,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-
-                                  const SizedBox(
-                                      height: 18),
-
-                                  Text(
-                                    "Layanan",
-                                    style:
-                                        TextStyle(
-                                      color: Colors
-                                          .grey
-                                          .shade700,
-                                    ),
-                                  ),
-
-                                  const SizedBox(
-                                      height: 4),
-
-                                  Text(
-                                    "${item["layanan"]} (${item["jumlah"]} pasang)",
-                                  ),
-
-                                  const SizedBox(
-                                      height: 20),
-
-                                  Align(
-
-                                    alignment:
-                                        Alignment
-                                            .centerRight,
-
-                                    child:
-                                        ElevatedButton(
-
-                                      onPressed: () {
-
-                                        showModalBottomSheet(
-
-                                          context: context,
-
-                                          shape: const RoundedRectangleBorder(
-
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(24),
-                                            ),
-                                          ),
-
-                                          builder: (context) {
-
-                                            return Container(
-
-                                              padding: const EdgeInsets.all(20),
-
-                                              child: Column(
-
-                                                mainAxisSize: MainAxisSize.min,
-
-                                                children: [
-
-                                                  const Text(
-
-                                                    "Update Status",
-
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-
-                                                  const SizedBox(height: 20),
-
-                                                  statusButton(
-                                                    item["id"],
-                                                    "Menunggu",
-                                                    Colors.orange,
-                                                  ),
-
-                                                  const SizedBox(height: 12),
-
-                                                  statusButton(
-                                                    item["id"],
-                                                    "Diproses",
-                                                    Colors.purple,
-                                                  ),
-
-                                                  const SizedBox(height: 12),
-
-                                                  statusButton(
-                                                    item["id"],
-                                                    "Selesai",
-                                                    Colors.green,
-                                                  ),
-
-                                                  const SizedBox(height: 12),
-
-                                                  statusButton(
-                                                    item["id"],
-                                                    "Diambil",
-                                                    Colors.blue,
-                                                  ),
-
-                                                  const SizedBox(height: 20),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-
-                                      style:
-                                          ElevatedButton.styleFrom(
-
-                                        backgroundColor:
-                                            item["status"] ==
-                                                    "Selesai"
-
-                                                ? Colors.red
-
-                                                : const Color(
-                                                    0xFF0F766E,
-                                                  ),
-
-                                        shape:
-                                            RoundedRectangleBorder(
-
-                                          borderRadius:
-                                              BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                      ),
-
-                                      child: Text(
-
-                                        item["status"] ==
-                                                "Selesai"
-
-                                            ? "Hapus Status"
-
-                                            : "Update Status",
-
-                                        style:
-                                            const TextStyle(
-                                          color:
-                                              Colors
-                                                  .white,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-          )
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: fetchOrders,
+                    child: ListView.builder(
+                      padding:
+                          const EdgeInsets.all(16),
+                      itemCount:
+                          filteredOrders.length,
+                      itemBuilder:
+                          (context, index) {
+                        final item =
+                            filteredOrders[index];
+                        return _buildOrderCard(
+                          item,
+                        );
+                      },
+                    ),
+                  ),
+          ),
         ],
       ),
     );
@@ -772,7 +436,291 @@ class _TransactionPageState
 
 
   // =====================================
-  // CHIP
+  // ORDER CARD
+  // "Sudah Diambil" → card greyed, no button
+  // Lainnya → tombol Update Status
+  // =====================================
+
+  Widget _buildOrderCard(
+    dynamic item,
+  ) {
+
+    final bool isDone =
+        item["status"] == "Sudah Diambil";
+
+    return Opacity(
+
+      opacity: isDone ? 0.65 : 1.0,
+
+      child: Container(
+
+        margin: const EdgeInsets.only(bottom: 16),
+
+        padding: const EdgeInsets.all(16),
+
+        decoration: BoxDecoration(
+
+          color: isDone
+              ? const Color(0xFFF3F3F3)
+              : Colors.white,
+
+          borderRadius:
+              BorderRadius.circular(20),
+
+          boxShadow: isDone
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black
+                        .withValues(alpha: 0.03),
+                    blurRadius: 10,
+                  ),
+                ],
+        ),
+
+        child: Column(
+
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+
+          children: [
+
+            // ── TOP ROW: nama + badge ──────
+
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item["nama"],
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "INV-${item["id"]}",
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: getStatusColor(
+                      item["status"],
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    item["status"],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            // ── LAYANAN ───────────────────
+
+            Text(
+              "Layanan",
+              style: TextStyle(
+                color: Colors.grey.shade700,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              "${item["layanan"]} (${item["jumlah"]} pasang)",
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── ACTION ────────────────────
+            // "Sudah Diambil" → label selesai
+            // Lainnya         → tombol update
+
+            if (isDone)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4F4F5),
+                    borderRadius:
+                        BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF6B7280),
+                        size: 16,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        "Sudah Diambil",
+                        style: TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontWeight:
+                              FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+
+            else
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      _showUpdateStatusSheet(
+                    item,
+                  ),
+                  style:
+                      ElevatedButton.styleFrom(
+                    backgroundColor:
+                        const Color(0xFF0F766E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        12,
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    "Update Status",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  // =====================================
+  // MODAL UPDATE STATUS
+  // Urutan: Diproses → Selesai →
+  //         Belum Diambil → Sudah Diambil
+  // =====================================
+
+  void _showUpdateStatusSheet(dynamic item) {
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              const Text(
+                "Update Status",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              statusButton(
+                item["id"],
+                "Diproses",
+                const Color(0xFF8B5CF6),
+              ),
+
+              const SizedBox(height: 12),
+
+              statusButton(
+                item["id"],
+                "Selesai",
+                const Color(0xFF0F766E),
+              ),
+
+              const SizedBox(height: 12),
+
+              statusButton(
+                item["id"],
+                "Belum Diambil",
+                const Color(0xFFB45309),
+              ),
+
+              const SizedBox(height: 12),
+
+              // "Sudah Diambil" — double confirm
+
+              statusButton(
+                item["id"],
+                "Sudah Diambil",
+                const Color(0xFF6B7280),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  // =====================================
+  // STATUS BUTTON
+  // "Sudah Diambil" → double confirmation
+  // Lainnya → langsung update
   // =====================================
 
   Widget statusButton(
@@ -782,39 +730,33 @@ class _TransactionPageState
   ) {
 
     return SizedBox(
-
       width: double.infinity,
       height: 52,
-
       child: ElevatedButton(
-
         onPressed: () async {
 
+          // Tutup modal dulu
           Navigator.pop(context);
 
-          await updateStatus(
-            id,
-            status,
-          );
+          if (status == "Sudah Diambil") {
+
+            // Double confirmation khusus status final
+            await confirmSudahDiambil(id);
+
+          } else {
+
+            await updateStatus(id, status);
+          }
         },
-
-        style:
-            ElevatedButton.styleFrom(
-
+        style: ElevatedButton.styleFrom(
           backgroundColor: color,
-
-          shape:
-              RoundedRectangleBorder(
-
+          shape: RoundedRectangleBorder(
             borderRadius:
                 BorderRadius.circular(14),
           ),
         ),
-
         child: Text(
-
           status,
-
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -824,62 +766,47 @@ class _TransactionPageState
     );
   }
 
+
+
+  // =====================================
+  // FILTER CHIP
+  // =====================================
+
   Widget filterChip(String status) {
 
-    bool selected =
+    final bool selected =
         selectedStatus == status;
 
     return GestureDetector(
-
       onTap: () {
-
         setState(() {
           selectedStatus = status;
         });
-
         filterOrders();
       },
-
       child: Container(
-
-        padding:
-            const EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 10,
         ),
-
         decoration: BoxDecoration(
-
-          color:
-              selected
-                  ? const Color(
-                      0xFF0F766E,
-                    )
-                  : Colors.white,
-
+          color: selected
+              ? const Color(0xFF0F766E)
+              : Colors.white,
           borderRadius:
               BorderRadius.circular(20),
-
           border: Border.all(
-            color:
-                selected
-                    ? const Color(
-                        0xFF0F766E,
-                      )
-                    : Colors.grey.shade300,
+            color: selected
+                ? const Color(0xFF0F766E)
+                : Colors.grey.shade300,
           ),
         ),
-
         child: Text(
-
           status,
-
           style: TextStyle(
-
-            color:
-                selected
-                    ? Colors.white
-                    : Colors.black,
+            color: selected
+                ? Colors.white
+                : Colors.black,
           ),
         ),
       ),

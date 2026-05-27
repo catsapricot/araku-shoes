@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'screens/home/home_page.dart';
+import 'screens/main_shell.dart';
 
 void main() async {
 
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
       ),
 
-      home: const HomePage(),
+      home: const MainShell(),
     );
   }
 }
