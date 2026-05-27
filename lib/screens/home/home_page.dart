@@ -976,7 +976,7 @@ class _HomePageState
                         return DashboardOrderCard(
 
                           invoice:
-                              "INV-${order["id"]}",
+                              "TRX-${order["id"]}",
 
                           customer:
                               order["nama"],

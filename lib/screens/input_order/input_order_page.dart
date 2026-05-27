@@ -171,7 +171,9 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
 
 
-      final response =
+      // var (bukan final) agar bisa di-replace
+      // jika GAS me-redirect POST request
+      var response =
           await http.post(
 
         Uri.parse(apiUrl),
@@ -210,6 +212,39 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
 
       // =====================================
+      // REDIRECT HANDLER
+      // Google Apps Script kadang mengembalikan
+      // 301/302/303 setelah POST berhasil.
+      // Dart http.post() TIDAK otomatis mengikuti
+      // redirect untuk POST (sesuai HTTP spec),
+      // sehingga response.body = HTML, bukan JSON.
+      // Solusi: ikuti redirect manual via GET.
+      // =====================================
+
+      final redirectStatus = response.statusCode;
+
+      if (
+        (redirectStatus == 301 ||
+         redirectStatus == 302 ||
+         redirectStatus == 303) &&
+        response.headers.containsKey('location')
+      ) {
+
+        final redirectUrl =
+            response.headers['location']!;
+
+        debugPrint(
+          "🔄 GAS redirect ($redirectStatus) → $redirectUrl",
+        );
+
+        response = await http.get(
+          Uri.parse(redirectUrl),
+        );
+      }
+
+
+
+      // =====================================
       // DEBUG: lihat raw response backend
       // =====================================
 
@@ -222,7 +257,8 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
       // =====================================
       // FALLBACK INVOICE ID (pakai timestamp)
-      // Dipakai jika response bukan JSON murni
+      // Hanya dipakai jika backend benar-benar
+      // tidak mengembalikan JSON dengan "id".
       // =====================================
 
       final String fallbackId =
@@ -236,14 +272,14 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
       // =====================================
       // SAFE JSON PARSING
-      // Jika backend kembalikan HTML / redirect
-      // / warning → tetap lanjut ke ReceiptPage
+      // .trim() membersihkan BOM / whitespace
+      // yang kadang ada di awal response GAS.
       // =====================================
 
       try {
 
         final result =
-            jsonDecode(response.body);
+            jsonDecode(response.body.trim());
 
         if (result["id"] != null) {
 
@@ -253,19 +289,26 @@ class _InputOrderPageState extends State<InputOrderPage> {
           debugPrint(
             "✅ Invoice dari backend: $invoiceId",
           );
+
+        } else {
+
+          debugPrint(
+            "⚠️  JSON valid tapi 'id' null — pakai fallback: $invoiceId",
+          );
         }
 
       } catch (_) {
 
-        // Response bukan JSON (HTML/redirect) —
-        // data sudah masuk spreadsheet, lanjut
-        // dengan fallback ID berbasis timestamp.
+        // Response benar-benar bukan JSON
+        // (misalnya HTML error 500).
+        // Data mungkin sudah masuk spreadsheet,
+        // lanjut dengan fallback timestamp.
 
         debugPrint(
-          "⚠️  Response bukan JSON — pakai fallback ID: $invoiceId",
+          "⚠️  Response bukan JSON — pakai fallback: $invoiceId",
         );
         debugPrint(
-          "⚠️  Data tetap berhasil masuk ke spreadsheet",
+          "⚠️  Cek response.body di atas untuk diagnosa",
         );
       }
 

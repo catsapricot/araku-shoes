@@ -143,6 +143,7 @@ class _HistoryPageState
       filteredOrders =
           orders.where((item) {
 
+        // Cari berdasarkan: nama | angka ID | "TRX-{id}"
         return item["nama"]
                 .toString()
                 .toLowerCase()
@@ -152,6 +153,12 @@ class _HistoryPageState
 
             item["id"]
                 .toString()
+                .contains(keyword)
+
+            ||
+
+            "TRX-${item["id"]}"
+                .toLowerCase()
                 .contains(keyword);
 
       }).toList();

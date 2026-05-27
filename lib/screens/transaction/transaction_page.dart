@@ -107,6 +107,7 @@ class _TransactionPageState
 
       filteredOrders = orders.where((item) {
 
+        // Cari berdasarkan: nama | angka ID | "TRX-{id}"
         final matchSearch =
             item["nama"]
                 .toString()
@@ -114,6 +115,9 @@ class _TransactionPageState
                 .contains(keyword) ||
             item["id"]
                 .toString()
+                .contains(keyword) ||
+            "TRX-${item["id"]}"
+                .toLowerCase()
                 .contains(keyword);
 
         final matchStatus =
@@ -511,7 +515,7 @@ class _TransactionPageState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "INV-${item["id"]}",
+                        "TRX-${item["id"]}",
                         overflow:
                             TextOverflow.ellipsis,
                         style: const TextStyle(
