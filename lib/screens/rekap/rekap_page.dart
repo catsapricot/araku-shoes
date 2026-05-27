@@ -336,17 +336,27 @@ class _RekapPageState
                       CircularProgressIndicator(),
                 )
 
-              : SingleChildScrollView(
+              // RefreshIndicator: swipe down → fetchData()
+              : RefreshIndicator(
 
-                  padding:
-                      const EdgeInsets.all(16),
+                  onRefresh: fetchData,
 
-                  child: Column(
+                  child: SingleChildScrollView(
 
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    // AlwaysScrollable agar RefreshIndicator
+                    // bisa dipicu meski konten pendek
+                    physics:
+                        const AlwaysScrollableScrollPhysics(),
 
-                    children: [
+                    padding:
+                        const EdgeInsets.all(16),
+
+                    child: Column(
+
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+
+                      children: [
 
                       const Text(
 
@@ -810,6 +820,7 @@ class _RekapPageState
                     ],
                   ),
                 ),
+              ),
 
 
 
