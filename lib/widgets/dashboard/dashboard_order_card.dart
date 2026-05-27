@@ -69,36 +69,48 @@ class DashboardOrderCard extends StatelessWidget {
             mainAxisAlignment:
                 MainAxisAlignment.spaceBetween,
 
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+
             children: [
 
-              Column(
+              Flexible(
 
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                child: Column(
 
-                children: [
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
 
-                  Text(
-                    invoice,
+                  children: [
 
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    Text(
+                      invoice,
+
+                      overflow: TextOverflow.ellipsis,
+
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 4),
+                    const SizedBox(height: 4),
 
-                  Text(
-                    customer,
+                    Text(
+                      customer,
 
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 13,
-                    ),
-                  )
-                ],
+                      overflow: TextOverflow.ellipsis,
+
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 13,
+                      ),
+                    )
+                  ],
+                ),
               ),
+
+              const SizedBox(width: 8),
 
               Container(
 

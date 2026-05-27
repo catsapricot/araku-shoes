@@ -389,24 +389,29 @@ class _TransactionPageState
                 // FILTER
                 // =====================================
 
-                Row(
+                SingleChildScrollView(
 
-                  children: [
+                  scrollDirection: Axis.horizontal,
 
-                    filterChip("Semua"),
+                  child: Row(
 
-                    const SizedBox(width: 8),
+                    children: [
 
-                    filterChip("Menunggu"),
+                      filterChip("Semua"),
 
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
 
-                    filterChip("Diproses"),
+                      filterChip("Menunggu"),
 
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
 
-                    filterChip("Selesai"),
-                  ],
+                      filterChip("Diproses"),
+
+                      const SizedBox(width: 8),
+
+                      filterChip("Selesai"),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -500,47 +505,64 @@ class _TransactionPageState
                                         MainAxisAlignment
                                             .spaceBetween,
 
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+
                                     children: [
 
-                                      Column(
+                                      Flexible(
 
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment
-                                                .start,
+                                        child: Column(
 
-                                        children: [
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment
+                                                  .start,
 
-                                          Text(
+                                          children: [
 
-                                            item["nama"],
+                                            Text(
 
-                                            style:
-                                                const TextStyle(
-                                              fontWeight:
-                                                  FontWeight
-                                                      .bold,
+                                              item["nama"],
 
-                                              fontSize:
-                                                  16,
+                                              overflow:
+                                                  TextOverflow
+                                                      .ellipsis,
+
+                                              style:
+                                                  const TextStyle(
+                                                fontWeight:
+                                                    FontWeight
+                                                        .bold,
+
+                                                fontSize:
+                                                    16,
+                                              ),
                                             ),
-                                          ),
 
-                                          const SizedBox(
-                                              height:
-                                                  4),
+                                            const SizedBox(
+                                                height:
+                                                    4),
 
-                                          Text(
+                                            Text(
 
-                                            "INV-${item["id"]}",
+                                              "INV-${item["id"]}",
 
-                                            style:
-                                                const TextStyle(
-                                              color:
-                                                  Colors.grey,
+                                              overflow:
+                                                  TextOverflow
+                                                      .ellipsis,
+
+                                              style:
+                                                  const TextStyle(
+                                                color:
+                                                    Colors.grey,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
+
+                                      const SizedBox(width: 8),
 
                                       Container(
 

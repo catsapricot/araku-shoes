@@ -12,34 +12,41 @@ class DashboardHeader extends StatelessWidget {
 
       children: [
 
-        Row(
-          children: [
+        Flexible(
 
-            Container(
-              width: 40,
-              height: 40,
+          child: Row(
+            children: [
 
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F766E),
-                borderRadius: BorderRadius.circular(12),
+              Container(
+                width: 40,
+                height: 40,
+
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F766E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+
+                child: const Icon(
+                  Icons.local_laundry_service,
+                  color: Colors.white,
+                ),
               ),
 
-              child: const Icon(
-                Icons.local_laundry_service,
-                color: Colors.white,
-              ),
-            ),
+              const SizedBox(width: 12),
 
-            const SizedBox(width: 12),
+              const Flexible(
 
-            const Text(
-              "Araku Shoes Care",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+                child: Text(
+                  "Araku Shoes Care",
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ],
     );

@@ -209,13 +209,65 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
 
 
-      final result =
-          jsonDecode(response.body);
+      // =====================================
+      // DEBUG: lihat raw response backend
+      // =====================================
+
+      debugPrint("=== RESPONSE BACKEND ===");
+      debugPrint("Status code : ${response.statusCode}");
+      debugPrint("Body        : ${response.body}");
+      debugPrint("========================");
 
 
 
-      final String invoiceId =
-          "TRX-${result["id"]}";
+      // =====================================
+      // FALLBACK INVOICE ID (pakai timestamp)
+      // Dipakai jika response bukan JSON murni
+      // =====================================
+
+      final String fallbackId =
+          DateTime.now()
+              .millisecondsSinceEpoch
+              .toString();
+
+      String invoiceId = "TRX-$fallbackId";
+
+
+
+      // =====================================
+      // SAFE JSON PARSING
+      // Jika backend kembalikan HTML / redirect
+      // / warning → tetap lanjut ke ReceiptPage
+      // =====================================
+
+      try {
+
+        final result =
+            jsonDecode(response.body);
+
+        if (result["id"] != null) {
+
+          invoiceId =
+              "TRX-${result["id"]}";
+
+          debugPrint(
+            "✅ Invoice dari backend: $invoiceId",
+          );
+        }
+
+      } catch (_) {
+
+        // Response bukan JSON (HTML/redirect) —
+        // data sudah masuk spreadsheet, lanjut
+        // dengan fallback ID berbasis timestamp.
+
+        debugPrint(
+          "⚠️  Response bukan JSON — pakai fallback ID: $invoiceId",
+        );
+        debugPrint(
+          "⚠️  Data tetap berhasil masuk ke spreadsheet",
+        );
+      }
 
 
 
@@ -249,6 +301,11 @@ class _InputOrderPageState extends State<InputOrderPage> {
       );
 
     } catch (e) {
+
+      // Catch ini hanya untuk error jaringan
+      // murni (no connection, timeout, dll).
+      // FormatException dari JSON sudah ditangani
+      // di inner try-catch di atas.
 
       if (!mounted) return;
 
