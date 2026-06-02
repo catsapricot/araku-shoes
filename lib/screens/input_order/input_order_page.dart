@@ -181,7 +181,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
         headers: {
 
           "Content-Type":
-              "application/json",
+              "text/plain",
         },
 
         body: jsonEncode({
