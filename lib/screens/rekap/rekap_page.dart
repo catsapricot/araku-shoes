@@ -235,6 +235,36 @@ class _RekapPageState
 
 
   // =====================================
+  // ORDERS PERIODE TERPILIH
+  // Semua statistik (pembayaran & layanan)
+  // mengikuti bulan + tahun yang dipilih
+  // supaya konsisten dengan Total Pemasukan.
+  // =====================================
+
+  List get _periodOrders {
+
+    return orders.where((item) {
+
+      try {
+
+        final date = DateTime.parse(
+          item["tanggal"].toString(),
+        );
+
+        return date.month == selectedMonth &&
+            date.year == selectedYear;
+
+      } catch (_) {
+
+        return false;
+      }
+
+    }).toList();
+  }
+
+
+
+  // =====================================
   // PAYMENT %
   // =====================================
 
@@ -242,43 +272,69 @@ class _RekapPageState
     String method,
   ) {
 
-    if (orders.isEmpty) return 0;
+    final list = _periodOrders;
 
-    int count =
+    if (list.isEmpty) return 0;
 
-        orders.where((item) {
+    final int count = list
+        .where((item) => item["metode"] == method)
+        .length;
 
-      return item["metode"] ==
-          method;
-
-    }).length;
-
-    return count / orders.length;
+    return count / list.length;
   }
 
 
 
   // =====================================
-  // SERVICE %
+  // TOP LAYANAN — dihitung dari data nyata
+  // Format teks backend: "Nama (Nx), Nama (Nx)"
+  // Akumulasi qty per layanan, urut terbanyak,
+  // ambil maksimal 5 teratas.
   // =====================================
 
-  double getServicePercent(
-    String service,
-  ) {
+  List<MapEntry<String, int>> getTopServices() {
 
-    if (orders.isEmpty) return 0;
+    final Map<String, int> counter = {};
 
-    int count =
+    final regex = RegExp(r'^(.*?)\s*\((\d+)x\)$');
 
-        orders.where((item) {
+    for (var item in _periodOrders) {
 
-      return item["layanan"]
-          .toString()
-          .contains(service);
+      final raw =
+          item["layanan"]?.toString() ?? "";
 
-    }).length;
+      if (raw.trim().isEmpty) continue;
 
-    return count / orders.length;
+      for (final part in raw.split(",")) {
+
+        final text = part.trim();
+
+        if (text.isEmpty) continue;
+
+        final match = regex.firstMatch(text);
+
+        if (match != null) {
+
+          final name = match.group(1)!.trim();
+          final qty =
+              int.tryParse(match.group(2)!) ?? 1;
+
+          counter[name] =
+              (counter[name] ?? 0) + qty;
+
+        } else {
+
+          // Fallback untuk data lama tanpa "(Nx)"
+          counter[text] =
+              (counter[text] ?? 0) + 1;
+        }
+      }
+    }
+
+    final entries = counter.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return entries.take(5).toList();
   }
 
 
@@ -787,35 +843,7 @@ class _RekapPageState
                         title:
                             "Layanan Populer",
 
-                        child: Column(
-
-                          children: [
-
-                            paymentBar(
-                              "Deep Cleaning",
-                              getServicePercent(
-                                "Deep",
-                              ),
-                              Colors.deepPurple,
-                            ),
-
-                            paymentBar(
-                              "Fast Cleaning",
-                              getServicePercent(
-                                "Express",
-                              ),
-                              Colors.deepPurple,
-                            ),
-
-                            paymentBar(
-                              "Unyellowing",
-                              getServicePercent(
-                                "Unyellowing",
-                              ),
-                              Colors.deepPurple,
-                            ),
-                          ],
-                        ),
+                        child: _buildPopularServices(),
                       ),
 
                       const SizedBox(height: 30),
@@ -935,6 +963,165 @@ class _RekapPageState
               color,
             ),
           )
+        ],
+      ),
+    );
+  }
+
+
+
+  // =====================================
+  // LAYANAN POPULER — daftar dinamis
+  // Ranking + jumlah pasang + bar relatif
+  // terhadap layanan terlaris.
+  // =====================================
+
+  Widget _buildPopularServices() {
+
+    final top = getTopServices();
+
+    if (top.isEmpty) {
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.inbox_outlined,
+                size: 40,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Belum ada data layanan bulan ini",
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final int maxVal = top.first.value;
+
+    return Column(
+      children: [
+        for (int i = 0; i < top.length; i++)
+          _serviceBar(
+            i + 1,
+            top[i].key,
+            top[i].value,
+            maxVal == 0
+                ? 0.0
+                : top[i].value / maxVal,
+          ),
+      ],
+    );
+  }
+
+
+
+  // =====================================
+  // SERVICE BAR (1 baris ranking layanan)
+  // =====================================
+
+  Widget _serviceBar(
+    int rank,
+    String name,
+    int count,
+    double ratio,
+  ) {
+
+    final Color barColor = rank == 1
+        ? const Color(0xFF7C3AED)
+        : rank == 2
+            ? const Color(0xFF9F67E4)
+            : const Color(0xFFC4B5FD);
+
+    return Padding(
+
+      padding:
+          const EdgeInsets.only(bottom: 18),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          Row(
+
+            children: [
+
+              // Nomor ranking
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: barColor
+                      .withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  "$rank",
+                  style: TextStyle(
+                    color: barColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Text(
+                "$count pasang",
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          ClipRRect(
+            borderRadius:
+                BorderRadius.circular(20),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 8,
+              backgroundColor:
+                  Colors.grey.shade200,
+              valueColor:
+                  AlwaysStoppedAnimation(
+                barColor,
+              ),
+            ),
+          ),
         ],
       ),
     );
