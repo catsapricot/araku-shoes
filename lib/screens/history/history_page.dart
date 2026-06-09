@@ -550,40 +550,66 @@ class _HistoryPageState
                                               ),
                                             ),
 
-                                            Container(
+                                            Column(
 
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 6,
-                                              ),
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .end,
 
-                                              decoration: BoxDecoration(
+                                              children: [
 
-                                                color: const Color(
-                                                  0xFFF3E8FF,
-                                                ),
+                                                Container(
 
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                  12,
-                                                ),
-                                              ),
-
-                                              child: Text(
-
-                                                item["metode"],
-
-                                                style:
-                                                    const TextStyle(
-                                                  color: Color(
-                                                    0xFF5B2DA3,
+                                                  padding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 6,
                                                   ),
-                                                  fontWeight:
-                                                      FontWeight.bold,
-                                                  fontSize: 12,
+
+                                                  decoration:
+                                                      BoxDecoration(
+
+                                                    color: const Color(
+                                                      0xFFF3E8FF,
+                                                    ),
+
+                                                    borderRadius:
+                                                        BorderRadius
+                                                            .circular(
+                                                      12,
+                                                    ),
+                                                  ),
+
+                                                  child: Text(
+
+                                                    item["metode"],
+
+                                                    style:
+                                                        const TextStyle(
+                                                      color: Color(
+                                                        0xFF5B2DA3,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight
+                                                              .bold,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
+
+                                                if (item["statusBayar"] !=
+                                                    null) ...[
+
+                                                  const SizedBox(
+                                                      height: 8),
+
+                                                  _statusBayarBadge(
+                                                    item["statusBayar"]
+                                                        .toString(),
+                                                  ),
+                                                ],
+                                              ],
                                             ),
                                           ],
                                         ),
@@ -607,6 +633,52 @@ class _HistoryPageState
   // FILTER CHIP WIDGET
   // Tap → update selectedFilter → filterOrders()
   // =====================================
+
+  // =====================================
+  // STATUS BAYAR BADGE
+  // Lunas → hijau, lainnya → oranye
+  // =====================================
+
+  Widget _statusBayarBadge(String status) {
+
+    final bool lunas = status == "Lunas";
+
+    return Container(
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+
+      decoration: BoxDecoration(
+
+        color: lunas
+            ? const Color(0xFFE6F4F1)
+            : const Color(0xFFFDF3E7),
+
+        borderRadius:
+            BorderRadius.circular(12),
+      ),
+
+      child: Text(
+
+        status,
+
+        style: TextStyle(
+
+          color: lunas
+              ? const Color(0xFF0F766E)
+              : const Color(0xFFB45309),
+
+          fontWeight: FontWeight.bold,
+
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+
 
   Widget filterChip(String title) {
 
