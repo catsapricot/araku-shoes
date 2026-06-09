@@ -221,7 +221,7 @@ class _TransactionPageState
           content: Text(
             "Gagal update pembayaran: $e",
           ),
-        ),appli
+        ),
       );
     }
   }
