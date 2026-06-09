@@ -26,10 +26,25 @@ function doPost(e) {
         String(data.id)
       ) {
 
-        // status column
-        sheet
-          .getRange(i + 1, 10)
-          .setValue(data.status);
+        // status column (kolom 10)
+        // hanya di-update bila dikirim
+        if (data.status != null &&
+            data.status !== "") {
+
+          sheet
+            .getRange(i + 1, 10)
+            .setValue(data.status);
+        }
+
+        // statusBayar column (kolom 12)
+        // hanya di-update bila dikirim
+        if (data.statusBayar != null &&
+            data.statusBayar !== "") {
+
+          sheet
+            .getRange(i + 1, 12)
+            .setValue(data.statusBayar);
+        }
 
         break;
       }
