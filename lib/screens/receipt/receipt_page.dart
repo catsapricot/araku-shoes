@@ -8,6 +8,8 @@ class ReceiptPage extends StatelessWidget {
 
   final String metode;
 
+  final String statusBayar;
+
   final int total;
 
   const ReceiptPage({
@@ -19,6 +21,8 @@ class ReceiptPage extends StatelessWidget {
     required this.cart,
 
     required this.metode,
+
+    this.statusBayar = "Lunas",
 
     required this.total,
   });
@@ -307,6 +311,58 @@ class ReceiptPage extends StatelessWidget {
                           style: const TextStyle(
                             fontWeight:
                                 FontWeight.bold,
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+
+                      mainAxisAlignment:
+                          MainAxisAlignment
+                              .spaceBetween,
+
+                      children: [
+
+                        const Text(
+                          "Status Pembayaran",
+                        ),
+
+                        Container(
+
+                          padding:
+                              const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+
+                          decoration: BoxDecoration(
+
+                            color: statusBayar == "Lunas"
+                                ? const Color(0xFFE6F4F1)
+                                : const Color(0xFFFDF3E7),
+
+                            borderRadius:
+                                BorderRadius.circular(12),
+                          ),
+
+                          child: Text(
+
+                            statusBayar,
+
+                            style: TextStyle(
+
+                              color: statusBayar == "Lunas"
+                                  ? const Color(0xFF0F766E)
+                                  : const Color(0xFFB45309),
+
+                              fontWeight:
+                                  FontWeight.bold,
+
+                              fontSize: 13,
+                            ),
                           ),
                         )
                       ],

@@ -1,0 +1,306 @@
+function doPost(e) {
+
+  var sheet =
+      SpreadsheetApp
+      .getActiveSpreadsheet()
+      .getSheetByName("Transaksi");
+
+  var data =
+      JSON.parse(e.postData.contents);
+
+
+
+  // =====================================
+  // UPDATE STATUS
+  // =====================================
+
+  if (data.action == "update") {
+
+    var rows =
+        sheet.getDataRange().getValues();
+
+    for (var i = 1; i < rows.length; i++) {
+
+      if (
+        String(rows[i][0]) ==
+        String(data.id)
+      ) {
+
+        // status column
+        sheet
+          .getRange(i + 1, 10)
+          .setValue(data.status);
+
+        break;
+      }
+    }
+
+    return ContentService
+      .createTextOutput(
+
+        JSON.stringify({
+          status: "updated"
+        })
+      )
+      .setMimeType(
+        ContentService.MimeType.JSON
+      );
+  }
+
+
+
+  // =====================================
+  // INSERT DATA BARU
+  // =====================================
+
+  var lastRow =
+      sheet.getLastRow();
+
+  var id = lastRow;
+
+
+
+  // =====================================
+  // PARSE MULTI LAYANAN
+  // =====================================
+
+  var layananList =
+      JSON.parse(data.layanan);
+
+  var layananText = "";
+
+  var total = 0;
+
+
+
+  for (
+    var i = 0;
+    i < layananList.length;
+    i++
+  ) {
+
+    var item =
+        layananList[i];
+
+
+
+    layananText +=
+
+        item.layanan +
+
+        " (" +
+
+        item.qty +
+
+        "x)";
+
+
+
+    if (
+      i <
+      layananList.length - 1
+    ) {
+
+      layananText += ", ";
+    }
+
+
+
+    total +=
+        item.subtotal;
+  }
+
+
+
+  // =====================================
+  // SAVE TO SHEET
+  // =====================================
+
+  sheet.appendRow([
+
+    id,
+
+    new Date(),
+
+    data.nama,
+
+    data.nohp,
+
+    layananText,
+
+    layananList.length,
+
+    total,
+
+    data.metode,
+
+    data.catatan,
+
+    "Diproses",
+
+    total,
+
+    data.statusBayar || "Belum Lunas"
+  ]);
+
+
+
+  return ContentService
+    .createTextOutput(
+
+      JSON.stringify({
+
+        status: "success",
+
+        id: id
+      })
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}
+
+
+
+
+
+function doGet(e) {
+
+  var sheet =
+      SpreadsheetApp
+      .getActiveSpreadsheet()
+      .getSheetByName("Transaksi");
+
+  var data =
+      sheet.getDataRange().getValues();
+
+
+
+  // =====================================
+  // GET ALL DATA
+  // =====================================
+
+  if (e.parameter.all == "true") {
+
+    var result = [];
+
+    for (
+      var i = 1;
+      i < data.length;
+      i++
+    ) {
+
+      result.push({
+
+        id: data[i][0],
+
+        tanggal: data[i][1],
+
+        nama: data[i][2],
+
+        nohp: data[i][3],
+
+        layanan: data[i][4],
+
+        jumlah: data[i][5],
+
+        harga: data[i][6],
+
+        metode: data[i][7],
+
+        catatan: data[i][8],
+
+        status: data[i][9],
+
+        total: data[i][10],
+
+        statusBayar: data[i][11]
+      });
+    }
+
+    return ContentService
+      .createTextOutput(
+        JSON.stringify(result)
+      )
+      .setMimeType(
+        ContentService.MimeType.JSON
+      );
+  }
+
+
+
+  // =====================================
+  // GET DETAIL BY ID
+  // =====================================
+
+  if (e.parameter.id) {
+
+    var id =
+        e.parameter.id;
+
+    for (
+      var i = 1;
+      i < data.length;
+      i++
+    ) {
+
+      if (
+        String(data[i][0]) ==
+        String(id)
+      ) {
+
+        var result = {
+
+          id: data[i][0],
+
+          tanggal: data[i][1],
+
+          nama: data[i][2],
+
+          nohp: data[i][3],
+
+          layanan: data[i][4],
+
+          jumlah: data[i][5],
+
+          harga: data[i][6],
+
+          metode: data[i][7],
+
+          catatan: data[i][8],
+
+          status: data[i][9],
+
+          total: data[i][10],
+
+          statusBayar: data[i][11]
+        };
+
+        return ContentService
+          .createTextOutput(
+            JSON.stringify(result)
+          )
+          .setMimeType(
+            ContentService.MimeType.JSON
+          );
+      }
+    }
+  }
+
+
+
+  // =====================================
+  // DEFAULT RESPONSE
+  // =====================================
+
+  return ContentService
+    .createTextOutput(
+
+      JSON.stringify({
+        message: "API Active"
+      })
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}

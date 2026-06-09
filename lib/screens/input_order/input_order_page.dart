@@ -42,6 +42,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
     "harga": 35000,
   };
   String metode = "Tunai";
+  String statusBayar = "Lunas";
   bool isLoading = false;
 
   // =====================================
@@ -204,6 +205,9 @@ class _InputOrderPageState extends State<InputOrderPage> {
           "metode":
               metode,
 
+          "statusBayar":
+              statusBayar,
+
           "catatan":
               catatanController.text,
         }),
@@ -336,6 +340,9 @@ class _InputOrderPageState extends State<InputOrderPage> {
 
             metode:
                 metode,
+
+            statusBayar:
+                statusBayar,
 
             total:
                 total,
@@ -677,6 +684,25 @@ class _InputOrderPageState extends State<InputOrderPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  const Text("Status Pembayaran",
+                      style: TextStyle(fontSize: 13)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _statusBayarItem(
+                        "Lunas",
+                        Icons.check_circle_outline,
+                        const Color(0xFF0F766E),
+                      ),
+                      const SizedBox(width: 10),
+                      _statusBayarItem(
+                        "Belum Lunas",
+                        Icons.schedule,
+                        const Color(0xFFB45309),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
                   _buildInput(
                     label: "Catatan (Opsional)",
                     hint: "Tambahkan catatan khusus...",
@@ -897,6 +923,41 @@ class _InputOrderPageState extends State<InputOrderPage> {
                 value,
                 style: TextStyle(
                   color: selected ? kPrimary : Colors.black,
+                  fontWeight:
+                      selected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBayarItem(String value, IconData icon, Color color) {
+    final bool selected = statusBayar == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => statusBayar = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected ? color.withValues(alpha: 0.1) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? color : Colors.grey.shade300,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: selected ? color : Colors.black54),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  color: selected ? color : Colors.black,
                   fontWeight:
                       selected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 12,

@@ -27,7 +27,7 @@ class _SetupWizardPageState
   static const Color kBg      = Color(0xFFF6F7FB);
 
   static const String _templateUrl =
-      "https://docs.google.com/spreadsheets/d/1b5nd__xwHzc4fCsaP365s7pdvdmcFGyxUeQLdqAeRkQ/copy";
+      "https://docs.google.com/spreadsheets/d/10qS02lCHgbLnMrh71aVIIDpNPibxA1BWi1ZooourEdw/copy";
 
 
 
