@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../input_order/input_order_page.dart';
+
 class ReceiptPage extends StatelessWidget {
 
   final String invoice;
@@ -555,7 +557,18 @@ class ReceiptPage extends StatelessWidget {
 
                   onPressed: () {
 
-                    Navigator.pop(context);
+                    // Buka halaman tambah transaksi baru,
+                    // mengganti struk ini di stack supaya
+                    // tidak menumpuk halaman.
+                    Navigator.pushReplacement(
+
+                      context,
+
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const InputOrderPage(),
+                      ),
+                    );
                   },
 
                   style:

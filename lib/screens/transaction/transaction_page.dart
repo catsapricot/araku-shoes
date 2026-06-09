@@ -180,6 +180,55 @@ class _TransactionPageState
 
 
   // =====================================
+  // UPDATE STATUS PEMBAYARAN
+  // Kirim action "update" dengan field
+  // statusBayar (kolom 12 di sheet).
+  // =====================================
+
+  Future<void> updateStatusBayar(
+    dynamic id,
+    String statusBayar,
+  ) async {
+
+    try {
+
+      final apiUrl =
+          await ApiService.getApiUrl();
+
+      await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "action": "update",
+          "id": id,
+          "statusBayar": statusBayar,
+        }),
+      );
+
+      fetchOrders();
+
+    } catch (e) {
+
+      debugPrint(e.toString());
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            "Gagal update pembayaran: $e",
+          ),
+        ),
+      );
+    }
+  }
+
+
+
+  // =====================================
   // DOUBLE CONFIRMATION — SUDAH DIAMBIL
   // 2 popup sebelum status final ditetapkan
   // =====================================
@@ -569,6 +618,65 @@ class _TransactionPageState
               "${item["layanan"]} (${item["jumlah"]} pasang)",
             ),
 
+            const SizedBox(height: 16),
+
+            // ── STATUS PEMBAYARAN + UBAH ──
+
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F4FA),
+                borderRadius:
+                    BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 18,
+                    color: Color(0xFF5B2DA3),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Pembayaran",
+                    style: TextStyle(
+                      fontSize: 13,
+                    ),
+                  ),
+                  const Spacer(),
+                  _paymentStatusBadge(
+                    item["statusBayar"],
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () =>
+                        _showUpdateStatusBayarSheet(
+                      item,
+                    ),
+                    child: Container(
+                      padding:
+                          const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(
+                          0xFFF3E8FF,
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: Color(0xFF5B2DA3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 20),
 
             // ── ACTION ────────────────────
@@ -716,6 +824,143 @@ class _TransactionPageState
           ),
         );
       },
+    );
+  }
+
+
+
+  // =====================================
+  // BADGE STATUS PEMBAYARAN
+  // Lunas → hijau, lainnya → oranye
+  // Data lama tanpa field → "Belum Lunas"
+  // =====================================
+
+  Widget _paymentStatusBadge(dynamic raw) {
+
+    final String status =
+        (raw == null ||
+                raw.toString().trim().isEmpty)
+            ? "Belum Lunas"
+            : raw.toString();
+
+    final bool lunas = status == "Lunas";
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: lunas
+            ? const Color(0xFFE6F4F1)
+            : const Color(0xFFFDF3E7),
+        borderRadius:
+            BorderRadius.circular(12),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: lunas
+              ? const Color(0xFF0F766E)
+              : const Color(0xFFB45309),
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+
+
+  // =====================================
+  // MODAL UBAH STATUS PEMBAYARAN
+  // =====================================
+
+  void _showUpdateStatusBayarSheet(
+    dynamic item,
+  ) {
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              const Text(
+                "Status Pembayaran",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              statusBayarButton(
+                item["id"],
+                "Lunas",
+                const Color(0xFF0F766E),
+              ),
+
+              const SizedBox(height: 12),
+
+              statusBayarButton(
+                item["id"],
+                "Belum Lunas",
+                const Color(0xFFB45309),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  // =====================================
+  // STATUS BAYAR BUTTON
+  // =====================================
+
+  Widget statusBayarButton(
+    dynamic id,
+    String value,
+    Color color,
+  ) {
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: () async {
+          Navigator.pop(context);
+          await updateStatusBayar(id, value);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(14),
+          ),
+        ),
+        child: Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 
