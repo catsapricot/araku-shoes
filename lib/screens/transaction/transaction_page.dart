@@ -198,7 +198,7 @@ class _TransactionPageState
       await http.post(
         Uri.parse(apiUrl),
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain",
         },
         body: jsonEncode({
           "action": "update",
