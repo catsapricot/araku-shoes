@@ -50,6 +50,7 @@ class _InputOrderPageState extends State<InputOrderPage> {
   // =====================================
 
   final List<Map<String, dynamic>> layananList = [
+    {"nama": "Cuci Sepatu Anak", "harga": 30000},
     {"nama": "Cuci Sepatu Gelap", "harga": 35000},
     {"nama": "Cuci Sepatu Terang", "harga": 40000},
     {"nama": "Cuci Sepatu Flat Shoes / Heels", "harga": 35000},
